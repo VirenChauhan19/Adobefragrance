@@ -362,7 +362,8 @@
     left: 50%;
     bottom: 72px;
     width: min(78%, 440px);
-    transform: translateX(-50%);
+    transform: translateX(-50%) perspective(900px) rotateX(5deg) rotateY(-7deg);
+    transform-style: preserve-3d;
     z-index: 1;
   }
   .scent-live-screen {
@@ -375,6 +376,7 @@
       #101118;
     box-shadow: 0 18px 60px rgba(0,0,0,0.48), inset 0 0 0 8px #08090e;
     position: relative;
+    transform: translateZ(16px);
   }
   .scent-live-screen::before {
     content: '';
@@ -425,7 +427,7 @@
       radial-gradient(ellipse at 50% 82%, color-mix(in srgb, var(--demo-color, #d96b73), white 16%) 0%, transparent 24%),
       radial-gradient(ellipse at 38% 50%, color-mix(in srgb, var(--demo-color, #d96b73), transparent 36%) 0%, transparent 31%);
     filter: blur(14px);
-    opacity: 0.62;
+    opacity: 0.82;
     animation: device-scent 5s ease-in-out infinite;
   }
   .scent-live-plume::before {
@@ -434,7 +436,7 @@
     width: 82px;
     height: 190px;
     animation-delay: -1.4s;
-    opacity: 0.4;
+    opacity: 0.56;
   }
   .scent-live-plume::after {
     left: 60%;
@@ -442,11 +444,23 @@
     width: 92px;
     height: 170px;
     animation-delay: -2.5s;
-    opacity: 0.36;
+    opacity: 0.5;
+  }
+  .scent-live-demo.is-releasing .scent-live-plume,
+  .scent-live-demo.is-releasing .scent-live-plume::before,
+  .scent-live-demo.is-releasing .scent-live-plume::after {
+    animation: none;
+  }
+  .scent-live-demo.release-active .scent-live-plume,
+  .scent-live-demo.release-active .scent-live-plume::before,
+  .scent-live-demo.release-active .scent-live-plume::after {
+    animation: device-scent 5s ease-in-out infinite;
   }
   @keyframes device-scent {
-    0%, 100% { transform: translateX(-50%) translateY(8px) scale(0.92) skewX(-5deg); opacity: 0.38; }
-    48% { transform: translateX(-50%) translateY(-14px) scale(1.08) skewX(6deg); opacity: 0.7; }
+    0% { transform: translateX(-50%) translateY(18px) scale(0.78) skewX(-5deg); opacity: 0.22; }
+    18% { opacity: 0.92; }
+    48% { transform: translateX(-50%) translateY(-20px) scale(1.18) skewX(6deg); opacity: 0.86; }
+    100% { transform: translateX(-50%) translateY(-46px) scale(1.38) skewX(-3deg); opacity: 0.18; }
   }
   .scent-live-copy {
     position: absolute;
@@ -1215,7 +1229,7 @@
     <p class="lead" style="max-width: 640px; color: rgba(255,255,255,0.65);">Pick a focus profile. The monitor releases a clean micro-dose every eight hours so the desk feels fresh without pulling you out of flow.</p>
 
     <div class="scent-showcase">
-      <div class="scent-live-demo" id="scentLiveDemo" style="--demo-color: #d96b73;">
+      <div class="scent-live-demo release-active" id="scentLiveDemo" style="--demo-color: #d96b73;">
         <div class="scent-live-top">
           <div>
             <div class="scent-live-label" id="liveLabel">Selected scent</div>
@@ -1774,12 +1788,12 @@ const particles = new THREE.Points(particlesGeo, particleMat);
 if (HERO_SCENT_PARTICLES) sceneGroup.add(particles);
 
 const scentPuffGroup = new THREE.Group();
-const scentPuffs = Array.from({ length: 20 }, (_, index) => {
+const scentPuffs = Array.from({ length: 34 }, (_, index) => {
   const spriteMat = new THREE.SpriteMaterial({
     map: particleTex,
     color: 0xffb08a,
     transparent: true,
-    opacity: 0.28,
+    opacity: 0.46,
     blending: THREE.AdditiveBlending,
     depthWrite: false
   });
@@ -2105,18 +2119,18 @@ function animate() {
   if (HERO_SCENT_ENABLED) {
     scentPuffs.forEach((puff, index) => {
       const data = puff.userData;
-      const p = (t * 0.085 + data.phase) % 1;
+      const p = (t * 0.105 + data.phase) % 1;
       const wave = Math.sin(t * 0.9 + data.seed + p * 5.5);
       const cross = Math.cos(t * 0.65 + data.seed + p * 4.2);
-      const baseSpread = emitterWidth * 0.46;
+      const baseSpread = emitterWidth * 0.58;
       puff.position.set(
-        data.side * baseSpread * p + wave * 0.18 * p,
-        emitterY + 0.08 + p * 3.05,
-        -0.08 + cross * 0.32 * p
+        data.side * baseSpread * p + wave * 0.32 * p,
+        emitterY + 0.08 + p * 3.35,
+        -0.08 + cross * 0.42 * p
       );
-      const scale = (0.28 + p * 1.38) * (viewportProfile.mobile ? 0.8 : 1);
-      puff.scale.set(scale * 1.45, scale, 1);
-      puff.material.opacity = Math.sin(p * Math.PI) * (viewportProfile.mobile ? 0.24 : 0.34);
+      const scale = (0.38 + p * 1.86) * (viewportProfile.mobile ? 0.88 : 1);
+      puff.scale.set(scale * 1.62, scale * 1.05, 1);
+      puff.material.opacity = Math.sin(p * Math.PI) * (viewportProfile.mobile ? 0.38 : 0.58);
       puff.material.rotation = wave * 0.55;
     });
   }
@@ -2143,12 +2157,12 @@ function animate() {
 
   if (HERO_SCENT_ENABLED) {
     scentPulseRings.forEach((ring, index) => {
-      const p = (t * 0.13 + ring.userData.phase) % 1;
-      const scaleX = 0.72 + p * 3.65;
-      const scaleZ = 0.18 + p * 1.35;
-      ring.position.set(0, emitterY + 0.12 + p * 1.55, -0.05);
+      const p = (t * 0.15 + ring.userData.phase) % 1;
+      const scaleX = 0.82 + p * 4.2;
+      const scaleZ = 0.22 + p * 1.58;
+      ring.position.set(0, emitterY + 0.12 + p * 1.75, -0.05);
       ring.scale.set(scaleX, scaleZ, 1);
-      ring.material.opacity = Math.sin(p * Math.PI) * (viewportProfile.mobile ? 0.12 : 0.19);
+      ring.material.opacity = Math.sin(p * Math.PI) * (viewportProfile.mobile ? 0.2 : 0.32);
     });
   }
 
@@ -2258,6 +2272,18 @@ const liveName = document.getElementById('liveName');
 const liveNotes = document.getElementById('liveNotes');
 const liveMoment = document.getElementById('liveMoment');
 let activeScentCard = null;
+let releaseResetFrame = 0;
+
+function restartLiveRelease() {
+  if (releaseResetFrame) cancelAnimationFrame(releaseResetFrame);
+  liveDemo.classList.remove('release-active');
+  liveDemo.classList.add('is-releasing');
+  releaseResetFrame = requestAnimationFrame(() => {
+    liveDemo.classList.remove('is-releasing');
+    liveDemo.classList.add('release-active');
+    releaseResetFrame = 0;
+  });
+}
 
 function selectScent(card, index) {
   const profile = scentProfiles[index];
@@ -2273,6 +2299,7 @@ function selectScent(card, index) {
   liveNotes.textContent = notes;
   liveMoment.textContent = profile.moment;
   particleTargetColor.set(hex);
+  restartLiveRelease();
 }
 
 function openScentPreview(card, index) {
