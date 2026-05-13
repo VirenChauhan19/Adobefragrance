@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Adobe — Monitor Fragrance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --adobe-red: #EB1000;
+    --ink: #050507;
+    --paper: #FAFAFA;
+    --smoke: #F2F2F2;
+    --mute: #6B6B72;
+    --line: #E5E5E5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: auto; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--ink);
+    color: var(--paper);
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(5,5,7,0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 14px 40px;
+    display: flex; align-items: center; gap: 36px;
+    font-size: 13.5px;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  /* Correct Adobe mark: red rounded square with white triangular 'A' cutout */
+  .logo-mark {
+    width: 28px; height: 26px;
+    background: var(--adobe-red);
+    border-radius: 5px;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-mark svg { width: 70%; height: 70%; }
+  nav ul { list-style: none; display: flex; gap: 28px; }
+  nav ul a {
+    color: rgba(255,255,255,0.85); text-decoration: none; font-weight: 500;
+    transition: opacity 0.2s;
+  }
+  nav ul a:hover { opacity: 0.6; }
+  .nav-right { margin-left: auto; display: flex; gap: 20px; align-items: center; }
+  .nav-cta {
+    background: var(--adobe-red); color: white;
+    padding: 8px 18px; border-radius: 999px;
+    text-decoration: none; font-weight: 500; font-size: 13px;
+  }
+
+  .stage {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  #canvas3d { width: 100%; height: 100%; display: block; }
+
+  .backdrop {
+    position: fixed; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse at 50% 50%, #1a0a18 0%, #0a0a12 50%, #050507 100%);
+    transition: background 1.2s ease;
+  }
+
+  .scroll-container { position: relative; z-index: 2; }
+  .section {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 0 8vw;
+    position: relative;
+  }
+  .text-block { max-width: 480px; pointer-events: auto; }
+  .text-block.right { margin-left: auto; }
+  .text-block.center { margin: 0 auto; text-align: center; }
+
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--adobe-red);
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .eyebrow::before {
+    content: ''; width: 24px; height: 1px;
+    background: var(--adobe-red);
+  }
+
+  h1.hero {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(56px, 9vw, 132px);
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    margin-bottom: 28px;
+  }
+  h1.hero em {
+    font-style: italic;
+    font-weight: 400;
+    background: linear-gradient(135deg, #FF6B47, var(--adobe-red));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(40px, 5.5vw, 76px);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+  }
+  h2 em { font-style: italic; color: var(--adobe-red); font-weight: 400; }
+  .lead {
+    font-size: 18px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: -0.01em;
+    margin-bottom: 32px;
+  }
+  .meta {
+    display: flex; gap: 28px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  .meta span { display: flex; align-items: center; gap: 8px; }
+  .meta span::before {
+    content: ''; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--adobe-red);
+  }
+
+  .scroll-cue {
+    position: absolute;
+    bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    display: flex; flex-direction: column;
+    align-items: center; gap: 12px;
+    animation: bob 2.5s ease-in-out infinite;
+  }
+  .scroll-cue::after {
+    content: '';
+    width: 1px; height: 30px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.5), transparent);
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.6; }
+    50% { transform: translateX(-50%) translateY(8px); opacity: 1; }
+  }
+
+  .notification {
+    position: fixed;
+    top: 50%; right: 5vw;
+    transform: translateY(-50%) translateX(20px);
+    background: rgba(15, 15, 20, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    padding: 18px 22px;
+    display: flex; gap: 14px; align-items: center;
+    max-width: 280px;
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 0.6s, transform 0.6s;
+  }
+  .notification.show {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+  .notif-icon {
+    width: 42px; height: 42px; flex-shrink: 0;
+    border-radius: 10px;
+    background: var(--adobe-red);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .notif-icon svg { width: 60%; height: 60%; }
+  .notif-body { flex: 1; }
+  .notif-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .notif-sub { font-size: 11px; color: rgba(255,255,255,0.55); }
+  .notif-pulse {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 0 0 rgba(74,222,128,0.6);
+    animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(74,222,128,0.6); }
+    70% { box-shadow: 0 0 0 12px rgba(74,222,128,0); }
+    100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+  }
+
+  .post-3d {
+    position: relative;
+    z-index: 10;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .scent-section {
+    background: var(--ink);
+    padding: 140px 8vw;
+    color: var(--paper);
+  }
+  .section-eyebrow {
+    font-size: 11px; letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--adobe-red);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .scent-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.08);
+    margin-top: 60px;
+  }
+  .scent-card {
+    background: var(--ink);
+    padding: 36px 24px;
+    aspect-ratio: 1;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    transition: background 0.4s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .scent-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--scent-color);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .scent-card:hover::before { opacity: 0.18; }
+  .scent-card:hover .scent-name { transform: translateY(-4px); }
+  .scent-num {
+    font-family: 'Fraunces', serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    position: relative; z-index: 2;
+  }
+  .scent-name {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    transition: transform 0.4s;
+    position: relative; z-index: 2;
+  }
+  .scent-notes {
+    font-size: 10px;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    position: relative; z-index: 2;
+  }
+
+  .products-section {
+    padding: 120px 8vw;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .products-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 60px; flex-wrap: wrap; gap: 20px;
+  }
+  .products-section .section-eyebrow { color: var(--adobe-red); }
+  .products-section h2 { color: var(--ink); }
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .product-card {
+    background: var(--smoke);
+    border-radius: 16px;
+    padding: 26px 22px;
+    transition: transform 0.3s, background 0.3s;
+    cursor: pointer;
+  }
+  .product-card:hover { transform: translateY(-4px); background: #ebebeb; }
+  .product-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    margin-bottom: 18px;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-family: 'Fraunces', serif;
+    font-weight: 500; font-size: 18px;
+    letter-spacing: -0.04em;
+  }
+  .product-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .product-desc { font-size: 13px; color: var(--mute); }
+
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.5);
+    padding: 60px 40px 30px;
+    text-align: center;
+    font-size: 12px;
+  }
+  footer p { margin-top: 10px; }
+
+  .scroll-progress {
+    position: fixed;
+    top: 50%; left: 30px;
+    transform: translateY(-50%);
+    width: 2px; height: 200px;
+    background: rgba(255,255,255,0.08);
+    z-index: 50;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .scroll-progress-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    background: var(--adobe-red);
+    height: 0%;
+    transition: height 0.1s linear;
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 12px 18px; gap: 16px; }
+    nav ul { display: none; }
+    .text-block, .text-block.right { max-width: 100%; margin: 0; }
+    .section { padding: 0 24px; }
+    .scent-grid { grid-template-columns: repeat(2, 1fr); }
+    .scent-section, .products-section { padding: 80px 24px; }
+    .notification { right: 16px; max-width: 220px; padding: 14px; }
+    .scroll-progress { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Reusable Adobe 'A' SVG: stylized triangular A with cutout -->
+<svg style="display:none;" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="adobe-a" viewBox="0 0 100 100">
+    <!-- The recognizable Adobe 'A' shape: solid triangle with inverted triangle cutout in lower middle -->
+    <path d="M 50 12 L 88 88 L 65 88 L 50 56 L 35 88 L 12 88 Z M 50 56 L 58 72 L 42 72 Z" fill="white" fill-rule="evenodd"/>
+  </symbol>
+</svg>
+
+<nav>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg><use href="#adobe-a"/></svg>
+    </div>
+    Adobe
+  </div>
+  <ul>
+    <li><a href="#">Creativity</a></li>
+    <li><a href="#">PDF</a></li>
+    <li><a href="#">Marketing</a></li>
+    <li><a href="#">Labs</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="#" style="color: rgba(255,255,255,0.85); text-decoration: none; font-weight: 500;">Sign in</a>
+    <a href="#" class="nav-cta">Reserve</a>
+  </div>
+</nav>
+
+<div class="backdrop" id="backdrop"></div>
+
+<div class="stage">
+  <canvas id="canvas3d"></canvas>
+</div>
+
+<div class="notification" id="notification">
+  <div class="notif-icon">
+    <svg><use href="#adobe-a"/></svg>
+  </div>
+  <div class="notif-body">
+    <div class="notif-title">Fragrance Released</div>
+    <div class="notif-sub">N°02 Render Smoke · Every 8h</div>
+  </div>
+  <div class="notif-pulse"></div>
+</div>
+
+<div class="scroll-progress"><div class="scroll-progress-bar" id="progressBar"></div></div>
+
+<div class="scroll-container">
+  <section class="section" data-stage="0">
+    <div class="text-block">
+      <div class="eyebrow">Adobe Labs · New</div>
+      <h1 class="hero">Monitor <em>Fragrance.</em></h1>
+      <p class="lead">A precision aroma engine built into your display. Curated scents diffused every eight hours — so focus stays deep, and your work stays unmistakably yours.</p>
+      <div class="meta">
+        <span>Auto-deploy</span>
+        <span>12 signature scents</span>
+      </div>
+    </div>
+    <div class="scroll-cue">Scroll</div>
+  </section>
+
+  <section class="section" data-stage="1">
+    <div class="text-block right">
+      <div class="eyebrow">The Display</div>
+      <h2>The monitor <em>breathes.</em></h2>
+      <p class="lead">A purpose-built 5K creator display with a concealed atomizer along the top edge. Aluminum chassis, magnetic refill bay, whisper-silent — never wet, never sticky.</p>
+    </div>
+  </section>
+
+  <section class="section" data-stage="2">
+    <div class="text-block">
+      <div class="eyebrow">The Release</div>
+      <h2>Every <em>eight hours</em>, on the dot.</h2>
+      <p class="lead">Three diffusions a day, calibrated to your circadian rhythm and which Adobe app is in focus. Sunrise sharpens. Midday grounds. Twilight softens the close.</p>
+    </div>
+  </section>
+
+  <section class="section" data-stage="3">
+    <div class="text-block center">
+      <div class="eyebrow" style="justify-content:center;">The Ritual</div>
+      <h2>Creativity, <em>now scented.</em></h2>
+      <p class="lead" style="margin: 0 auto 32px;">A new sense layer for Creative Cloud. Pair with Photoshop, Illustrator, Premiere, After Effects, and the rest. The system knows your flow.</p>
+    </div>
+  </section>
+</div>
+
+<div class="post-3d">
+  <section class="scent-section">
+    <div class="section-eyebrow">The library</div>
+    <h2>Twelve scents. <em>One workflow.</em></h2>
+    <p class="lead" style="max-width: 540px; color: rgba(255,255,255,0.65);">Each fragrance is paired to a creative mode. Hover to feel it.</p>
+
+    <div class="scent-grid">
+      <div class="scent-card" style="--scent-color: #ff6b6b;">
+        <div class="scent-num">N°01</div>
+        <div><div class="scent-name">Pixel Bloom</div></div>
+        <div class="scent-notes">Rose · Iron · Static</div>
+      </div>
+      <div class="scent-card" style="--scent-color: #c77dff;">
+        <div class="scent-num">N°02</div>
+        <div><div class="scent-name">Render Smoke</div></div>
+        <div class="scent-notes">Oud · Solder · Velvet</div>
+      </div>
+      <div class="scent-card" style="--scent-color: #7cc4ff;">
+        <div class="scent-num">N°03</div>
+        <div><div class="scent-name">Vector Rain</div></div>
+        <div class="scent-notes">Petrichor · Mint · Ink</div>
+      </div>
+      <div class="scent-card" style="--scent-color: #b8ffb1;">
+        <div class="scent-num">N°04</div>
+        <div><div class="scent-name">Layer Garden</div></div>
+        <div class="scent-notes">Fig leaf · Moss · Paper</div>
+      </div>
+      <div class="scent-card" style="--scent-color: #ffb84d;">
+        <div class="scent-num">N°05</div>
+        <div><div class="scent-name">Export Dawn</div></div>
+        <div class="scent-notes">Amber · Citrus · Linen</div>
+      </div>
+      <div class="scent-card" style="--scent-color: #ff3d7f;">
+        <div class="scent-num">N°06</div>
+        <div><div class="scent-name">Crimson Save</div></div>
+        <div class="scent-notes">Leather · Saffron · Heat</div>
+      </div>
+      <div class="scent-card" style="--scent-color: #4ecdc4;">
+        <div class="scent-num">N°07</div>
+        <div><div class="scent-name">Glyph Tide</div></div>
+        <div class="scent-notes">Sea salt · Cedar · Glass</div>
+      </div>
+      <div class="scent-card" style="--scent-color: #e8e8e8;">
+        <div class="scent-num">N°08</div>
+        <div><div class="scent-name">White Space</div></div>
+        <div class="scent-notes">Cotton · Sandal · Air</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="products-section">
+    <div class="products-header">
+      <div>
+        <div class="section-eyebrow">Creative Cloud</div>
+        <h2 style="font-size: clamp(32px, 4.5vw, 56px);">Pairs with everything <em>you already love.</em></h2>
+      </div>
+      <a href="#" style="color: var(--adobe-red); text-decoration: none; font-weight: 500;">View all apps →</a>
+    </div>
+
+    <div class="products-grid">
+      <div class="product-card">
+        <div class="product-icon" style="background: linear-gradient(135deg, #001E36, #31A8FF);">Ps</div>
+        <div class="product-name">Photoshop</div>
+        <div class="product-desc">Edit and composite images.</div>
+      </div>
+      <div class="product-card">
+        <div class="product-icon" style="background: linear-gradient(135deg, #330000, #FF9A00);">Ai</div>
+        <div class="product-name">Illustrator</div>
+        <div class="product-desc">Create vector graphics.</div>
+      </div>
+      <div class="product-card">
+        <div class="product-icon" style="background: linear-gradient(135deg, #00005B, #9999FF);">Pr</div>
+        <div class="product-name">Premiere Pro</div>
+        <div class="product-desc">Edit professional video.</div>
+      </div>
+      <div class="product-card">
+        <div class="product-icon" style="background: linear-gradient(135deg, #1A0533, #9999FF);">Ae</div>
+        <div class="product-name">After Effects</div>
+        <div class="product-desc">Design motion graphics.</div>
+      </div>
+      <div class="product-card">
+        <div class="product-icon" style="background: linear-gradient(135deg, #4D1A00, #FF6F61);">Id</div>
+        <div class="product-name">InDesign</div>
+        <div class="product-desc">Design and publish layouts.</div>
+      </div>
+      <div class="product-card" style="background: linear-gradient(135deg, #1a0a14, #2a0a18); color: white;">
+        <div class="product-icon" style="background: linear-gradient(135deg, var(--adobe-red), #FF6B47);">Mf</div>
+        <div class="product-name">Monitor Fragrance</div>
+        <div class="product-desc" style="color: rgba(255,255,255,0.6);">Scent your workflow. New.</div>
+      </div>
+      <div class="product-card">
+        <div class="product-icon" style="background: linear-gradient(135deg, #2B0026, #E64DD9);">Xd</div>
+        <div class="product-name">Adobe XD</div>
+        <div class="product-desc">Design and prototype UX.</div>
+      </div>
+      <div class="product-card">
+        <div class="product-icon" style="background: linear-gradient(135deg, #b30b00, #EB1000);">Ac</div>
+        <div class="product-name">Acrobat</div>
+        <div class="product-desc">Work with PDFs anywhere.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="logo" style="justify-content: center; color: white;">
+      <div class="logo-mark">
+        <svg><use href="#adobe-a"/></svg>
+      </div>
+      Adobe
+    </div>
+    <p>Concept pitch · Not affiliated with Adobe Inc.</p>
+    <p>A demonstrative mockup for advertising / creative direction purposes.</p>
+  </footer>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const canvas = document.getElementById('canvas3d');
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x0a0a12, 10, 35);
+
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 1.2, 8);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000, 0);
+
+// ===== LIGHTING =====
+const ambient = new THREE.AmbientLight(0x4a3540, 0.4);
+scene.add(ambient);
+
+const keyLight = new THREE.DirectionalLight(0xffd4b8, 1.0);
+keyLight.position.set(5, 6, 4);
+scene.add(keyLight);
+
+const rimLight = new THREE.DirectionalLight(0xEB1000, 0.8);
+rimLight.position.set(-4, 3, -2);
+scene.add(rimLight);
+
+const fillLight = new THREE.PointLight(0xff6b47, 1.2, 12);
+fillLight.position.set(0, 2, 3);
+scene.add(fillLight);
+
+// ===== THE SCENE GROUP (everything spins together) =====
+const sceneGroup = new THREE.Group();
+scene.add(sceneGroup);
+
+// ===== THE MONITOR =====
+const monitorGroup = new THREE.Group();
+
+// Monitor screen housing (the front bezel + screen)
+const screenW = 4.2, screenH = 2.6, screenD = 0.12;
+const housingGeo = new THREE.BoxGeometry(screenW, screenH, screenD);
+const housingMat = new THREE.MeshPhysicalMaterial({
+  color: 0x0a0a0c,
+  metalness: 0.7,
+  roughness: 0.35,
+  clearcoat: 0.4
+});
+const housing = new THREE.Mesh(housingGeo, housingMat);
+monitorGroup.add(housing);
+
+// The screen itself — a glowing plane just in front of the housing
+const screenInnerW = 4.0, screenInnerH = 2.4;
+
+// Create the screen content as a canvas texture (mock UI)
+const screenCanvas = document.createElement('canvas');
+screenCanvas.width = 1024; screenCanvas.height = 614;
+const sctx = screenCanvas.getContext('2d');
+// Dark editor background
+const bgGrad = sctx.createLinearGradient(0, 0, 1024, 614);
+bgGrad.addColorStop(0, '#1a1a22');
+bgGrad.addColorStop(1, '#0e0e16');
+sctx.fillStyle = bgGrad;
+sctx.fillRect(0, 0, 1024, 614);
+// Top toolbar
+sctx.fillStyle = '#252530';
+sctx.fillRect(0, 0, 1024, 36);
+// Window dots
+sctx.fillStyle = '#ff5f57'; sctx.beginPath(); sctx.arc(20, 18, 6, 0, Math.PI*2); sctx.fill();
+sctx.fillStyle = '#febc2e'; sctx.beginPath(); sctx.arc(40, 18, 6, 0, Math.PI*2); sctx.fill();
+sctx.fillStyle = '#28c840'; sctx.beginPath(); sctx.arc(60, 18, 6, 0, Math.PI*2); sctx.fill();
+// Left tool panel
+sctx.fillStyle = '#1e1e28';
+sctx.fillRect(0, 36, 60, 578);
+for (let i = 0; i < 10; i++) {
+  sctx.fillStyle = i === 2 ? '#EB1000' : '#3a3a48';
+  sctx.fillRect(15, 60 + i * 50, 30, 30);
+}
+// Canvas area — a creative artwork preview
+const artGrad = sctx.createRadialGradient(500, 320, 50, 500, 320, 350);
+artGrad.addColorStop(0, '#ff6b47');
+artGrad.addColorStop(0.5, '#c41e6b');
+artGrad.addColorStop(1, '#1a0a22');
+sctx.fillStyle = artGrad;
+sctx.fillRect(80, 60, 700, 540);
+// Right layers panel
+sctx.fillStyle = '#1e1e28';
+sctx.fillRect(800, 36, 224, 578);
+for (let i = 0; i < 8; i++) {
+  sctx.fillStyle = '#2a2a36';
+  sctx.fillRect(820, 60 + i * 50, 184, 38);
+  sctx.fillStyle = '#5a5a6e';
+  sctx.fillRect(830, 72 + i * 50, 80, 14);
+}
+// Adobe logo bottom-left of canvas
+sctx.fillStyle = '#EB1000';
+sctx.beginPath();
+sctx.roundRect(95, 555, 36, 32, 6);
+sctx.fill();
+sctx.fillStyle = 'white';
+sctx.beginPath();
+sctx.moveTo(113, 562);
+sctx.lineTo(127, 583);
+sctx.lineTo(99, 583);
+sctx.closePath();
+sctx.fill();
+
+const screenTex = new THREE.CanvasTexture(screenCanvas);
+const screenGeo = new THREE.PlaneGeometry(screenInnerW, screenInnerH);
+const screenMat = new THREE.MeshBasicMaterial({ map: screenTex });
+const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+screenMesh.position.z = screenD / 2 + 0.001;
+monitorGroup.add(screenMesh);
+
+// Soft screen glow that lights nearby smoke
+const screenGlow = new THREE.PointLight(0xff6b47, 1.5, 8);
+screenGlow.position.set(0, 0, 0.8);
+monitorGroup.add(screenGlow);
+
+// The atomizer strip on top of the monitor — where fragrance comes from
+const atomizerGeo = new THREE.BoxGeometry(screenW * 0.6, 0.06, screenD * 1.2);
+const atomizerMat = new THREE.MeshPhysicalMaterial({
+  color: 0x1a1a20,
+  metalness: 0.85,
+  roughness: 0.3
+});
+const atomizer = new THREE.Mesh(atomizerGeo, atomizerMat);
+atomizer.position.y = screenH / 2 + 0.03;
+monitorGroup.add(atomizer);
+
+// Glowing red emission slit along the atomizer
+const slitGeo = new THREE.BoxGeometry(screenW * 0.55, 0.015, screenD * 0.4);
+const slitMat = new THREE.MeshBasicMaterial({ color: 0xEB1000 });
+const slit = new THREE.Mesh(slitGeo, slitMat);
+slit.position.y = screenH / 2 + 0.075;
+monitorGroup.add(slit);
+
+// Monitor stand
+const stemGeo = new THREE.CylinderGeometry(0.08, 0.1, 1.0, 16);
+const stemMat = new THREE.MeshPhysicalMaterial({
+  color: 0x1a1a20, metalness: 0.85, roughness: 0.3
+});
+const stem = new THREE.Mesh(stemGeo, stemMat);
+stem.position.y = -screenH / 2 - 0.5;
+monitorGroup.add(stem);
+
+// Monitor base
+const baseGeo = new THREE.CylinderGeometry(0.8, 0.85, 0.08, 32);
+const baseMat = new THREE.MeshPhysicalMaterial({
+  color: 0x0e0e14, metalness: 0.8, roughness: 0.4
+});
+const monitorBase = new THREE.Mesh(baseGeo, baseMat);
+monitorBase.position.y = -screenH / 2 - 1.04;
+monitorGroup.add(monitorBase);
+
+// Red Adobe accent on the base front
+const accentGeo = new THREE.BoxGeometry(0.5, 0.04, 0.02);
+const accentMat = new THREE.MeshBasicMaterial({ color: 0xEB1000 });
+const accent = new THREE.Mesh(accentGeo, accentMat);
+accent.position.set(0, -screenH / 2 - 1.04, 0.78);
+monitorGroup.add(accent);
+
+sceneGroup.add(monitorGroup);
+
+// ===== THE DIFFUSER CARTRIDGE (small, sits beside the monitor) =====
+const cartridgeGroup = new THREE.Group();
+
+const cartBody = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.18, 0.2, 0.55, 32),
+  new THREE.MeshPhysicalMaterial({
+    color: 0xEB1000,
+    metalness: 0.4,
+    roughness: 0.35,
+    clearcoat: 0.5,
+    emissive: 0x2a0a04,
+    emissiveIntensity: 0.4
+  })
+);
+cartridgeGroup.add(cartBody);
+
+const cartTop = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.18, 0.18, 0.04, 32),
+  new THREE.MeshPhysicalMaterial({ color: 0x0a0a0c, metalness: 0.95, roughness: 0.2 })
+);
+cartTop.position.y = 0.295;
+cartridgeGroup.add(cartTop);
+
+cartridgeGroup.position.set(2.6, -1.6, 0.5);
+sceneGroup.add(cartridgeGroup);
+
+// ===== FRAGRANCE PARTICLES (rising from top edge of monitor) =====
+const PARTICLE_COUNT = 600;
+const particlesGeo = new THREE.BufferGeometry();
+const positions = new Float32Array(PARTICLE_COUNT * 3);
+const velocities = new Float32Array(PARTICLE_COUNT * 3);
+const lifetimes = new Float32Array(PARTICLE_COUNT);
+const startLife = new Float32Array(PARTICLE_COUNT);
+
+const emitterY = screenH / 2 + 0.08;
+const emitterWidth = screenW * 0.55;
+
+function resetParticle(i) {
+  // Spawn along the atomizer slit (top edge of monitor)
+  positions[i * 3]     = (Math.random() - 0.5) * emitterWidth;
+  positions[i * 3 + 1] = emitterY;
+  positions[i * 3 + 2] = (Math.random() - 0.5) * 0.15;
+
+  // Drift upward with a bit of outward spread
+  velocities[i * 3]     = (Math.random() - 0.5) * 0.006;
+  velocities[i * 3 + 1] = 0.008 + Math.random() * 0.012;
+  velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.004;
+
+  startLife[i] = 1.0 + Math.random() * 1.5;
+  lifetimes[i] = startLife[i];
+}
+for (let i = 0; i < PARTICLE_COUNT; i++) {
+  resetParticle(i);
+  // Stagger initial state so particles don't all start at the bottom
+  lifetimes[i] = Math.random() * startLife[i];
+  positions[i * 3 + 1] = emitterY + Math.random() * 3.5;
+}
+particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+// Soft circular smoke texture
+const particleCanvas = document.createElement('canvas');
+particleCanvas.width = 128; particleCanvas.height = 128;
+const pctx = particleCanvas.getContext('2d');
+const pgrad = pctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+pgrad.addColorStop(0, 'rgba(255, 200, 170, 0.9)');
+pgrad.addColorStop(0.3, 'rgba(255, 130, 90, 0.5)');
+pgrad.addColorStop(0.7, 'rgba(200, 60, 40, 0.15)');
+pgrad.addColorStop(1, 'rgba(120, 40, 30, 0)');
+pctx.fillStyle = pgrad;
+pctx.fillRect(0, 0, 128, 128);
+const particleTex = new THREE.CanvasTexture(particleCanvas);
+
+const particleMat = new THREE.PointsMaterial({
+  size: 0.55,
+  map: particleTex,
+  transparent: true,
+  opacity: 0.7,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  sizeAttenuation: true,
+  color: 0xff8a5c
+});
+
+const particles = new THREE.Points(particlesGeo, particleMat);
+sceneGroup.add(particles);
+
+// ===== DESK SURFACE =====
+const deskGeo = new THREE.PlaneGeometry(20, 12);
+const deskMat = new THREE.MeshPhysicalMaterial({
+  color: 0x0a0a10,
+  metalness: 0.4,
+  roughness: 0.7
+});
+const desk = new THREE.Mesh(deskGeo, deskMat);
+desk.rotation.x = -Math.PI / 2;
+desk.position.y = -screenH / 2 - 1.08;
+scene.add(desk);
+
+// ===== SCROLL-DRIVEN KEYFRAMES =====
+// Stage 0: front-on, monitor centered, fragrance rising
+// Stage 1: pan right, see monitor from angle, reveal cartridge
+// Stage 2: rise up and forward — look down at top of monitor where fragrance emits
+// Stage 3: pull back wide, whole setup spinning slowly
+const stages = [
+  { camPos: [0,  0.2,  6.5], lookAt: [0,  0.0, 0], rotY:  0,           bg: '#1a0a18' },
+  { camPos: [4.5, 0.0, 4.5], lookAt: [0, -0.2, 0], rotY: -0.45,        bg: '#0a0a18' },
+  { camPos: [0,  3.2,  3.0], lookAt: [0,  1.3, 0], rotY: -Math.PI/2,   bg: '#1a0810' },
+  { camPos: [0,  0.8, 10.0], lookAt: [0,  0.0, 0], rotY: -Math.PI,     bg: '#080810' }
+];
+
+const tmpLook = new THREE.Vector3();
+function lerp(a, b, t) { return a + (b - a) * t; }
+function smoothstep(t) { return t * t * (3 - 2 * t); }
+
+function applyScroll() {
+  const sectionH = window.innerHeight;
+  const totalScroll = sectionH * 3;
+  const scrollY = Math.min(window.scrollY, totalScroll);
+  const progress = scrollY / totalScroll;
+
+  document.getElementById('progressBar').style.height = (progress * 100) + '%';
+
+  const segF = progress * (stages.length - 1);
+  const segIdx = Math.min(Math.floor(segF), stages.length - 2);
+  const segT = smoothstep(segF - segIdx);
+
+  const a = stages[segIdx];
+  const b = stages[segIdx + 1];
+
+  camera.position.set(
+    lerp(a.camPos[0], b.camPos[0], segT),
+    lerp(a.camPos[1], b.camPos[1], segT),
+    lerp(a.camPos[2], b.camPos[2], segT)
+  );
+  tmpLook.set(
+    lerp(a.lookAt[0], b.lookAt[0], segT),
+    lerp(a.lookAt[1], b.lookAt[1], segT),
+    lerp(a.lookAt[2], b.lookAt[2], segT)
+  );
+  camera.lookAt(tmpLook);
+
+  sceneGroup.rotation.y = lerp(a.rotY, b.rotY, segT);
+
+  document.getElementById('backdrop').style.background =
+    `radial-gradient(ellipse at 50% 50%, ${b.bg} 0%, #0a0a12 50%, #050507 100%)`;
+
+  const notif = document.getElementById('notification');
+  if (progress > 0.55 && progress < 0.85) {
+    notif.classList.add('show');
+  } else {
+    notif.classList.remove('show');
+  }
+
+  const stageEl = document.querySelector('.stage');
+  if (scrollY > totalScroll + sectionH * 0.5) {
+    stageEl.style.opacity = '0';
+  } else {
+    stageEl.style.opacity = '1';
+  }
+}
+
+let scrollTicking = false;
+window.addEventListener('scroll', () => {
+  if (!scrollTicking) {
+    requestAnimationFrame(() => {
+      applyScroll();
+      scrollTicking = false;
+    });
+    scrollTicking = true;
+  }
+}, { passive: true });
+
+// ===== RENDER LOOP =====
+const clock = new THREE.Clock();
+function animate() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = clock.elapsedTime;
+
+  // Subtle breathing on the monitor
+  monitorGroup.position.y = Math.sin(t * 0.6) * 0.02;
+
+  // Pulse the emission slit
+  slit.material.color.setHSL(0.02, 1, 0.4 + Math.sin(t * 2) * 0.12);
+  screenGlow.intensity = 1.3 + Math.sin(t * 2) * 0.4;
+
+  // Cartridge gently rotates
+  cartridgeGroup.rotation.y = t * 0.3;
+
+  // Update particles
+  const pos = particlesGeo.attributes.position.array;
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    pos[i * 3]     += velocities[i * 3]     + Math.sin(t * 0.5 + i * 0.1) * 0.0015;
+    pos[i * 3 + 1] += velocities[i * 3 + 1];
+    pos[i * 3 + 2] += velocities[i * 3 + 2] + Math.cos(t * 0.5 + i * 0.1) * 0.0010;
+
+    lifetimes[i] -= dt * 0.4;
+    if (lifetimes[i] <= 0 || pos[i * 3 + 1] > emitterY + 4) {
+      resetParticle(i);
+    }
+  }
+  particlesGeo.attributes.position.needsUpdate = true;
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+applyScroll();
+animate();
+</script>
+
+</body>
+</html>
