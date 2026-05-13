@@ -289,19 +289,190 @@
   }
   .scent-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
     background: transparent;
-    margin-top: 44px;
+    margin-top: 0;
+  }
+  .scent-showcase {
+    display: grid;
+    grid-template-columns: minmax(360px, 0.9fr) minmax(420px, 1.1fr);
+    gap: 22px;
+    align-items: stretch;
+    margin-top: 46px;
+  }
+  .scent-live-demo {
+    min-height: 520px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    background:
+      radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--demo-color, #d96b73), transparent 78%), transparent 32%),
+      linear-gradient(180deg, rgba(255,255,255,0.065), rgba(255,255,255,0.018)),
+      #08080d;
+    position: sticky;
+    top: 92px;
+    overflow: hidden;
+    padding: 28px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 26px 80px rgba(0,0,0,0.32);
+  }
+  .scent-live-demo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, transparent, rgba(255,255,255,0.055), transparent),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.028) 0 1px, transparent 1px 52px);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .scent-live-top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .scent-live-label {
+    color: color-mix(in srgb, var(--demo-color, #d96b73), white 18%);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .scent-live-name {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(34px, 4vw, 54px);
+    line-height: 0.96;
+    letter-spacing: -0.03em;
+  }
+  .scent-live-timer {
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: rgba(255,255,255,0.72);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .scent-live-device {
+    position: absolute;
+    left: 50%;
+    bottom: 72px;
+    width: min(78%, 440px);
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+  .scent-live-screen {
+    aspect-ratio: 16 / 10;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 12px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.13), transparent 16%),
+      radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--demo-color, #d96b73), transparent 76%), transparent 42%),
+      #101118;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.48), inset 0 0 0 8px #08090e;
+    position: relative;
+  }
+  .scent-live-screen::before {
+    content: '';
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    top: -10px;
+    height: 4px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--demo-color, #d96b73), white 12%);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--demo-color, #d96b73), transparent 22%);
+  }
+  .scent-live-screen::after {
+    content: 'FOCUS RELEASE';
+    position: absolute;
+    left: 20px;
+    bottom: 18px;
+    color: rgba(255,255,255,0.58);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+  }
+  .scent-live-stand {
+    width: 18%;
+    height: 48px;
+    margin: 0 auto;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
+  }
+  .scent-live-base {
+    width: 54%;
+    height: 10px;
+    margin: 0 auto;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+  }
+  .scent-live-plume,
+  .scent-live-plume::before,
+  .scent-live-plume::after {
+    position: absolute;
+    content: '';
+    left: 50%;
+    top: -118px;
+    width: 150px;
+    height: 210px;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    background:
+      radial-gradient(ellipse at 50% 82%, color-mix(in srgb, var(--demo-color, #d96b73), white 16%) 0%, transparent 24%),
+      radial-gradient(ellipse at 38% 50%, color-mix(in srgb, var(--demo-color, #d96b73), transparent 36%) 0%, transparent 31%);
+    filter: blur(14px);
+    opacity: 0.62;
+    animation: device-scent 5s ease-in-out infinite;
+  }
+  .scent-live-plume::before {
+    left: 42%;
+    top: 6px;
+    width: 82px;
+    height: 190px;
+    animation-delay: -1.4s;
+    opacity: 0.4;
+  }
+  .scent-live-plume::after {
+    left: 60%;
+    top: 24px;
+    width: 92px;
+    height: 170px;
+    animation-delay: -2.5s;
+    opacity: 0.36;
+  }
+  @keyframes device-scent {
+    0%, 100% { transform: translateX(-50%) translateY(8px) scale(0.92) skewX(-5deg); opacity: 0.38; }
+    48% { transform: translateX(-50%) translateY(-14px) scale(1.08) skewX(6deg); opacity: 0.7; }
+  }
+  .scent-live-copy {
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    bottom: 26px;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .scent-live-copy span {
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 12px;
+    color: rgba(255,255,255,0.72);
+    font-size: 12px;
   }
   .scent-card {
     background:
-      linear-gradient(145deg, rgba(255,255,255,0.075), rgba(255,255,255,0.03)),
-      rgba(12,12,16,0.92);
+      linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025)),
+      rgba(11,11,15,0.92);
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 8px;
-    padding: 22px;
-    min-height: 190px;
+    padding: 18px;
+    min-height: 158px;
     display: flex; flex-direction: column;
     justify-content: space-between;
     transition: background 0.25s, border-color 0.25s, transform 0.25s;
@@ -316,9 +487,9 @@
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(90deg, var(--scent-color), transparent 42%),
-      radial-gradient(circle at 85% 18%, color-mix(in srgb, var(--scent-color), transparent 68%) 0%, transparent 28%);
-    opacity: 0.12;
+      linear-gradient(90deg, color-mix(in srgb, var(--scent-color), transparent 62%), transparent 48%),
+      radial-gradient(circle at 88% 16%, color-mix(in srgb, var(--scent-color), transparent 80%) 0%, transparent 24%);
+    opacity: 0.18;
     transition: opacity 0.25s;
   }
   .scent-card::after {
@@ -362,13 +533,13 @@
   .scent-card:hover .scent-name { transform: translateY(-2px); }
   .scent-num {
     font-family: 'Fraunces', serif;
-    font-size: 14px;
+    font-size: 12px;
     color: rgba(255,255,255,0.68);
     position: relative; z-index: 2;
   }
   .scent-name {
     font-family: 'Fraunces', serif;
-    font-size: clamp(24px, 2.2vw, 32px);
+    font-size: clamp(22px, 1.8vw, 28px);
     font-weight: 400;
     letter-spacing: -0.02em;
     line-height: 1.02;
@@ -377,13 +548,13 @@
     max-width: 12ch;
   }
   .scent-notes {
-    font-size: 11px;
+    font-size: 10px;
     color: rgba(255,255,255,0.74);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     line-height: 1.7;
     position: relative; z-index: 2;
-    padding-bottom: 44px;
+    padding-bottom: 40px;
   }
   .scent-notes::before {
     content: '';
@@ -471,8 +642,12 @@
     h2 { font-size: clamp(34px, 12vw, 54px); }
     .lead { font-size: 16px; max-width: 31rem; }
     .meta { flex-direction: column; gap: 10px; }
+    .scent-showcase { grid-template-columns: 1fr; gap: 16px; margin-top: 34px; }
+    .scent-live-demo { min-height: 460px; position: relative; top: auto; padding: 22px; }
+    .scent-live-top { flex-direction: column; }
+    .scent-live-copy { left: 22px; right: 22px; grid-template-columns: 1fr; }
     .scent-grid { grid-template-columns: 1fr; gap: 12px; margin-top: 36px; }
-    .scent-card { padding: 22px 18px; min-height: 210px; aspect-ratio: auto; }
+    .scent-card { padding: 18px; min-height: 160px; aspect-ratio: auto; }
     .scent-card::after { left: 18px; bottom: 18px; }
     .scent-name { font-size: 22px; }
     .scent-notes { padding-bottom: 42px; }
@@ -492,6 +667,8 @@
   @media (min-width: 769px) and (max-width: 1100px) {
     .section { padding: 0 6vw; }
     .text-block { max-width: 430px; }
+    .scent-showcase { grid-template-columns: 1fr; }
+    .scent-live-demo { position: relative; top: auto; min-height: 500px; }
     .scent-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
@@ -682,7 +859,7 @@
     position: relative;
     overflow: hidden;
     background:
-      radial-gradient(circle at 50% 62%, color-mix(in srgb, var(--preview-color), transparent 48%), transparent 32%),
+      radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--preview-color), transparent 70%), transparent 34%),
       linear-gradient(145deg, #0b0b12, #050507);
   }
   .scent-video::before,
@@ -702,36 +879,104 @@
   .scent-video::after {
     animation-delay: 1.45s;
   }
-  .scent-stream {
+  .preview-device {
     position: absolute;
     left: 50%;
-    bottom: 13%;
-    width: 42%;
-    height: 66%;
+    bottom: 54px;
+    width: min(78%, 430px);
     transform: translateX(-50%);
+  }
+  .preview-screen {
+    aspect-ratio: 16 / 10;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 12px;
     background:
-      radial-gradient(ellipse at 50% 84%, color-mix(in srgb, var(--preview-color), white 10%) 0%, transparent 18%),
-      radial-gradient(ellipse at 38% 58%, color-mix(in srgb, var(--preview-color), transparent 30%) 0%, transparent 28%),
-      radial-gradient(ellipse at 64% 32%, color-mix(in srgb, var(--preview-color), white 24%) 0%, transparent 22%);
-    filter: blur(18px);
-    opacity: 0.8;
+      linear-gradient(180deg, rgba(255,255,255,0.13), transparent 18%),
+      radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--preview-color), transparent 74%), transparent 42%),
+      #101118;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.54), inset 0 0 0 8px #07080d;
+    position: relative;
+  }
+  .preview-screen::before {
+    content: '';
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    top: -10px;
+    height: 4px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--preview-color), white 12%);
+    box-shadow: 0 0 28px color-mix(in srgb, var(--preview-color), transparent 20%);
+  }
+  .preview-screen::after {
+    content: '8H FOCUS PULSE';
+    position: absolute;
+    left: 18px;
+    bottom: 16px;
+    color: rgba(255,255,255,0.6);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+  }
+  .preview-stand {
+    width: 18%;
+    height: 42px;
+    margin: 0 auto;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
+  }
+  .preview-base {
+    width: 54%;
+    height: 10px;
+    margin: 0 auto;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+  }
+  .scent-stream,
+  .scent-stream::before,
+  .scent-stream::after {
+    position: absolute;
+    content: '';
+    left: 50%;
+    top: -118px;
+    width: 170px;
+    height: 220px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background:
+      radial-gradient(ellipse at 50% 84%, color-mix(in srgb, var(--preview-color), white 12%) 0%, transparent 20%),
+      radial-gradient(ellipse at 40% 54%, color-mix(in srgb, var(--preview-color), transparent 32%) 0%, transparent 32%),
+      radial-gradient(ellipse at 64% 30%, color-mix(in srgb, var(--preview-color), white 28%) 0%, transparent 24%);
+    filter: blur(14px);
+    opacity: 0.64;
     animation: preview-breathe 4.8s ease-in-out infinite;
+  }
+  .scent-stream::before {
+    left: 42%;
+    top: 10px;
+    width: 86px;
+    height: 190px;
+    opacity: 0.42;
+    animation-delay: -1.4s;
+  }
+  .scent-stream::after {
+    left: 60%;
+    top: 22px;
+    width: 96px;
+    height: 178px;
+    opacity: 0.38;
+    animation-delay: -2.6s;
   }
   .scent-wave {
     position: absolute;
     left: 50%;
-    bottom: 20%;
-    width: 2px;
-    height: 58%;
-    background: color-mix(in srgb, var(--preview-color), white 16%);
-    box-shadow:
-      -42px 22px 0 color-mix(in srgb, var(--preview-color), transparent 44%),
-      46px -14px 0 color-mix(in srgb, var(--preview-color), transparent 50%),
-      82px 40px 0 color-mix(in srgb, var(--preview-color), transparent 62%);
-    border-radius: 999px;
-    opacity: 0.7;
-    transform: translateX(-50%) rotate(8deg);
-    animation: preview-sway 3.8s ease-in-out infinite;
+    top: -36px;
+    width: 260px;
+    height: 86px;
+    border: 1px solid color-mix(in srgb, var(--preview-color), white 20%);
+    border-radius: 50%;
+    opacity: 0;
+    transform: translateX(-50%) scale(0.42);
+    animation: preview-ring 3.1s ease-out infinite;
   }
   @keyframes preview-ring {
     0% { opacity: 0; transform: translateX(-50%) scale(0.28); }
@@ -739,8 +984,8 @@
     100% { opacity: 0; transform: translateX(-50%) scale(1.45); }
   }
   @keyframes preview-breathe {
-    0%, 100% { transform: translateX(-50%) scale(0.92) skewX(-4deg); opacity: 0.62; }
-    50% { transform: translateX(-50%) scale(1.08) skewX(5deg); opacity: 0.9; }
+    0%, 100% { transform: translateX(-50%) translateY(8px) scale(0.9) skewX(-5deg); opacity: 0.42; }
+    50% { transform: translateX(-50%) translateY(-16px) scale(1.08) skewX(6deg); opacity: 0.78; }
   }
   @keyframes preview-sway {
     0%, 100% { transform: translateX(-50%) rotate(-7deg) scaleY(0.94); }
@@ -967,8 +1212,29 @@
   <section class="scent-section">
     <div class="section-eyebrow">The library</div>
     <h2>Twelve scents. <em>One workflow.</em></h2>
-    <p class="lead" style="max-width: 540px; color: rgba(255,255,255,0.65);">Each fragrance is paired to a creative mode. Hover to feel it.</p>
+    <p class="lead" style="max-width: 640px; color: rgba(255,255,255,0.65);">Pick a focus profile. The monitor releases a clean micro-dose every eight hours so the desk feels fresh without pulling you out of flow.</p>
 
+    <div class="scent-showcase">
+      <div class="scent-live-demo" id="scentLiveDemo" style="--demo-color: #d96b73;">
+        <div class="scent-live-top">
+          <div>
+            <div class="scent-live-label" id="liveLabel">Selected scent</div>
+            <div class="scent-live-name" id="liveName">Pixel Bloom</div>
+          </div>
+          <div class="scent-live-timer">Next release · 8h</div>
+        </div>
+        <div class="scent-live-device">
+          <div class="scent-live-screen">
+            <div class="scent-live-plume"></div>
+          </div>
+          <div class="scent-live-stand"></div>
+          <div class="scent-live-base"></div>
+        </div>
+        <div class="scent-live-copy">
+          <span id="liveNotes">Rose · Iron · Static</span>
+          <span id="liveMoment">Best for ideation</span>
+        </div>
+      </div>
     <div class="scent-grid">
       <div class="scent-card" style="--scent-color: #d96b73;">
         <div class="scent-num">N°01</div>
@@ -1019,13 +1285,20 @@
         <div class="scent-active">✦ Now diffusing</div>
       </div>
     </div>
+    </div>
   </section>
 
   <div class="scent-preview" id="scentPreview" aria-hidden="true">
     <div class="scent-preview-panel" role="dialog" aria-modal="true" aria-labelledby="previewName">
       <div class="scent-video" id="previewVideo">
-        <div class="scent-stream"></div>
-        <div class="scent-wave"></div>
+        <div class="preview-device">
+          <div class="preview-screen">
+            <div class="scent-stream"></div>
+            <div class="scent-wave"></div>
+          </div>
+          <div class="preview-stand"></div>
+          <div class="preview-base"></div>
+        </div>
       </div>
       <div class="scent-preview-copy">
         <div>
@@ -1630,8 +1903,8 @@ function updateResponsiveScene() {
   scentTrailGroup.scale.set(mobile ? 0.72 : tablet ? 0.86 : 1, mobile ? 0.82 : tablet ? 0.92 : 1, 1);
   scentPulseGroup.scale.setScalar(mobile ? 0.72 : tablet ? 0.88 : 1);
   scentTrailMats.forEach((mat, index) => {
-    const desktopOpacities = [0.32, 0.18, 0.12];
-    const mobileOpacities = [0.22, 0.12, 0.08];
+    const desktopOpacities = [0.12, 0.075, 0.045];
+    const mobileOpacities = [0.08, 0.05, 0.03];
     mat.opacity = reduceMotion ? 0.06 : mobile ? mobileOpacities[index] : desktopOpacities[index];
   });
   activeParticleCount = Math.min(PARTICLE_COUNT, viewportProfile.particleCount);
@@ -1795,7 +2068,7 @@ function animate() {
     const scaleZ = 0.28 + p * 1.2;
     ring.position.set(0, emitterY + 0.18 + p * 1.35, -0.04);
     ring.scale.set(scaleX, scaleZ, 1);
-    ring.material.opacity = (1 - p) * (viewportProfile.mobile ? 0.12 : 0.18);
+    ring.material.opacity = (1 - p) * (viewportProfile.mobile ? 0.16 : 0.24);
   });
 
   // Update particles
@@ -1897,18 +2170,35 @@ const previewDesc = document.getElementById('previewDesc');
 const previewApp = document.getElementById('previewApp');
 const previewMoment = document.getElementById('previewMoment');
 const previewClose = document.getElementById('previewClose');
+const liveDemo = document.getElementById('scentLiveDemo');
+const liveName = document.getElementById('liveName');
+const liveNotes = document.getElementById('liveNotes');
+const liveMoment = document.getElementById('liveMoment');
 let activeScentCard = null;
 
-function openScentPreview(card, index) {
+function selectScent(card, index) {
   const profile = scentProfiles[index];
   const hex = getComputedStyle(card).getPropertyValue('--scent-color').trim();
-  const num = card.querySelector('.scent-num').textContent;
   const name = card.querySelector('.scent-name').textContent;
   const notes = card.querySelector('.scent-notes').textContent;
 
   if (activeScentCard) activeScentCard.classList.remove('is-active');
   activeScentCard = card;
   activeScentCard.classList.add('is-active');
+  liveDemo.style.setProperty('--demo-color', hex);
+  liveName.textContent = name;
+  liveNotes.textContent = notes;
+  liveMoment.textContent = profile.moment;
+  particleTargetColor.set(hex);
+}
+
+function openScentPreview(card, index) {
+  selectScent(card, index);
+  const profile = scentProfiles[index];
+  const hex = getComputedStyle(card).getPropertyValue('--scent-color').trim();
+  const num = card.querySelector('.scent-num').textContent;
+  const name = card.querySelector('.scent-name').textContent;
+  const notes = card.querySelector('.scent-notes').textContent;
 
   previewEl.style.setProperty('--preview-color', hex);
   previewVideo.style.setProperty('--preview-color', hex);
@@ -1921,7 +2211,6 @@ function openScentPreview(card, index) {
   previewEl.classList.add('open');
   previewEl.setAttribute('aria-hidden', 'false');
   previewClose.focus();
-  particleTargetColor.set(hex);
 }
 
 function closeScentPreview() {
@@ -1945,6 +2234,7 @@ document.querySelectorAll('.scent-card').forEach((card, index) => {
   card.addEventListener('mouseleave', () => {
     if (activeScentCard !== card) particleTargetColor.copy(particleDefaultColor);
   });
+  card.addEventListener('focus', () => selectScent(card, index));
   card.addEventListener('click', () => openScentPreview(card, index));
   card.addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -1953,6 +2243,9 @@ document.querySelectorAll('.scent-card').forEach((card, index) => {
     }
   });
 });
+
+const firstScentCard = document.querySelector('.scent-card');
+if (firstScentCard) selectScent(firstScentCard, 0);
 
 previewClose.addEventListener('click', closeScentPreview);
 previewEl.addEventListener('click', e => {
