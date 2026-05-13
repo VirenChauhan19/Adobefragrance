@@ -493,7 +493,7 @@
     transition: opacity 0.25s;
   }
   .scent-card::after {
-    content: 'Open preview';
+    content: none;
     position: absolute;
     left: 24px;
     right: auto;
@@ -554,7 +554,7 @@
     letter-spacing: 0.12em;
     line-height: 1.7;
     position: relative; z-index: 2;
-    padding-bottom: 40px;
+    padding-bottom: 0;
   }
   .scent-notes::before {
     content: '';
@@ -650,7 +650,7 @@
     .scent-card { padding: 18px; min-height: 160px; aspect-ratio: auto; }
     .scent-card::after { left: 18px; bottom: 18px; }
     .scent-name { font-size: 22px; }
-    .scent-notes { padding-bottom: 42px; }
+    .scent-notes { padding-bottom: 0; }
     .products-grid { grid-template-columns: 1fr; }
     .scent-section, .products-section { padding: 80px 24px; }
     .notification { top: auto; right: 14px; bottom: 22px; max-width: min(300px, calc(100vw - 28px)); padding: 14px; transform: translateY(16px); }
@@ -1398,6 +1398,18 @@
 <script type="module">
 import * as THREE from 'three';
 
+const HERO_SCENT_ENABLED = false;
+
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+window.addEventListener('beforeunload', () => window.scrollTo(0, 0));
+window.addEventListener('load', () => {
+  requestAnimationFrame(() => window.scrollTo(0, 0));
+});
+window.scrollTo(0, 0);
+setTimeout(() => window.scrollTo(0, 0), 0);
+
 const canvas = document.getElementById('canvas3d');
 const root = document.documentElement;
 const progressBar = document.getElementById('progressBar');
@@ -1757,7 +1769,7 @@ const particleMat = new THREE.ShaderMaterial({
 });
 
 const particles = new THREE.Points(particlesGeo, particleMat);
-sceneGroup.add(particles);
+if (HERO_SCENT_ENABLED) sceneGroup.add(particles);
 
 const scentTrailGroup = new THREE.Group();
 const scentTrailMats = [
@@ -1779,7 +1791,7 @@ const scentTrails = scentTrailMats.map((mat, trailIndex) => {
   scentTrailGroup.add(trail);
   return trail;
 });
-sceneGroup.add(scentTrailGroup);
+if (HERO_SCENT_ENABLED) sceneGroup.add(scentTrailGroup);
 
 const scentPulseGroup = new THREE.Group();
 const scentPulseRings = [0, 1, 2].map((_, index) => {
@@ -1798,7 +1810,7 @@ const scentPulseRings = [0, 1, 2].map((_, index) => {
   scentPulseGroup.add(ring);
   return ring;
 });
-sceneGroup.add(scentPulseGroup);
+if (HERO_SCENT_ENABLED) sceneGroup.add(scentPulseGroup);
 
 // ===== DESK SURFACE =====
 const deskGeo = new THREE.PlaneGeometry(20, 12);
@@ -1899,16 +1911,21 @@ function updateResponsiveScene() {
     panel.scale.setScalar(mobile ? 0.72 : tablet ? 0.86 : 1);
   });
 
-  particleMat.uniforms.uBaseSize.value = mobile ? 32 : tablet ? 38 : 42;
-  scentTrailGroup.scale.set(mobile ? 0.72 : tablet ? 0.86 : 1, mobile ? 0.82 : tablet ? 0.92 : 1, 1);
-  scentPulseGroup.scale.setScalar(mobile ? 0.72 : tablet ? 0.88 : 1);
-  scentTrailMats.forEach((mat, index) => {
-    const desktopOpacities = [0.12, 0.075, 0.045];
-    const mobileOpacities = [0.08, 0.05, 0.03];
-    mat.opacity = reduceMotion ? 0.06 : mobile ? mobileOpacities[index] : desktopOpacities[index];
-  });
-  activeParticleCount = Math.min(PARTICLE_COUNT, viewportProfile.particleCount);
-  particlesGeo.setDrawRange(0, activeParticleCount);
+  if (HERO_SCENT_ENABLED) {
+    particleMat.uniforms.uBaseSize.value = mobile ? 32 : tablet ? 38 : 42;
+    scentTrailGroup.scale.set(mobile ? 0.72 : tablet ? 0.86 : 1, mobile ? 0.82 : tablet ? 0.92 : 1, 1);
+    scentPulseGroup.scale.setScalar(mobile ? 0.72 : tablet ? 0.88 : 1);
+    scentTrailMats.forEach((mat, index) => {
+      const desktopOpacities = [0.12, 0.075, 0.045];
+      const mobileOpacities = [0.08, 0.05, 0.03];
+      mat.opacity = reduceMotion ? 0.06 : mobile ? mobileOpacities[index] : desktopOpacities[index];
+    });
+    activeParticleCount = Math.min(PARTICLE_COUNT, viewportProfile.particleCount);
+    particlesGeo.setDrawRange(0, activeParticleCount);
+  } else {
+    activeParticleCount = 0;
+    particlesGeo.setDrawRange(0, 0);
+  }
 }
 
 function applyScroll() {
@@ -1996,15 +2013,16 @@ function animate() {
   sceneGroup.rotation.y = scrollRotY + parallaxX;
   sceneGroup.rotation.x = parallaxY;
 
-  // Reactive particle color lerp
-  particleCurrentColor.lerp(particleTargetColor, 0.04);
-  particleMat.uniforms.uColor.value.copy(particleCurrentColor);
-  scentTrailMats[0].color.copy(particleCurrentColor);
-  scentTrailMats[1].color.copy(particleCurrentColor).lerp(new THREE.Color(0xffffff), 0.52);
-  scentTrailMats[2].color.copy(particleCurrentColor).lerp(new THREE.Color(0xffffff), 0.78);
-  scentPulseRings.forEach((ring, index) => {
-    ring.material.color.copy(particleCurrentColor).lerp(new THREE.Color(0xffffff), 0.34 + index * 0.12);
-  });
+  if (HERO_SCENT_ENABLED) {
+    particleCurrentColor.lerp(particleTargetColor, 0.04);
+    particleMat.uniforms.uColor.value.copy(particleCurrentColor);
+    scentTrailMats[0].color.copy(particleCurrentColor);
+    scentTrailMats[1].color.copy(particleCurrentColor).lerp(new THREE.Color(0xffffff), 0.52);
+    scentTrailMats[2].color.copy(particleCurrentColor).lerp(new THREE.Color(0xffffff), 0.78);
+    scentPulseRings.forEach((ring, index) => {
+      ring.material.color.copy(particleCurrentColor).lerp(new THREE.Color(0xffffff), 0.34 + index * 0.12);
+    });
+  }
 
   // Hotspots — only visible in stage 0 (before first scroll threshold)
   const progressY = currentScrollY / window.innerHeight;
@@ -2045,59 +2063,60 @@ function animate() {
     panel.rotation.z = Math.sin(t * 0.32 + index) * 0.025;
   });
 
-  scentTrails.forEach((trail, index) => {
-    const attr = trail.geometry.attributes.position;
-    const arr = attr.array;
-    const phase = trail.userData.phase;
-    const width = trail.userData.width;
-    for (let j = 0; j < TRAIL_POINTS; j++) {
-      const p = j / (TRAIL_POINTS - 1);
-      const breathe = Math.sin(t * 0.48 + phase + p * 3.8);
-      const curl = Math.sin(t * 0.64 + phase + p * 7.2) * width * p;
-      const drift = Math.cos(t * 0.38 + phase + p * 5.1) * 0.12 * p;
-      arr[j * 3] = trail.userData.baseX + curl + drift;
-      arr[j * 3 + 1] = emitterY + p * 3.25 + breathe * 0.08;
-      arr[j * 3 + 2] = -0.08 - index * 0.06 + Math.cos(t * 0.46 + phase + p * 6.4) * 0.16 * p;
+  if (HERO_SCENT_ENABLED) {
+    scentTrails.forEach((trail, index) => {
+      const attr = trail.geometry.attributes.position;
+      const arr = attr.array;
+      const phase = trail.userData.phase;
+      const width = trail.userData.width;
+      for (let j = 0; j < TRAIL_POINTS; j++) {
+        const p = j / (TRAIL_POINTS - 1);
+        const breathe = Math.sin(t * 0.48 + phase + p * 3.8);
+        const curl = Math.sin(t * 0.64 + phase + p * 7.2) * width * p;
+        const drift = Math.cos(t * 0.38 + phase + p * 5.1) * 0.12 * p;
+        arr[j * 3] = trail.userData.baseX + curl + drift;
+        arr[j * 3 + 1] = emitterY + p * 3.25 + breathe * 0.08;
+        arr[j * 3 + 2] = -0.08 - index * 0.06 + Math.cos(t * 0.46 + phase + p * 6.4) * 0.16 * p;
+      }
+      attr.needsUpdate = true;
+    });
+
+    scentPulseRings.forEach((ring, index) => {
+      const p = (t * 0.16 + ring.userData.phase) % 1;
+      const scaleX = 0.85 + p * 3.1;
+      const scaleZ = 0.28 + p * 1.2;
+      ring.position.set(0, emitterY + 0.18 + p * 1.35, -0.04);
+      ring.scale.set(scaleX, scaleZ, 1);
+      ring.material.opacity = (1 - p) * (viewportProfile.mobile ? 0.16 : 0.24);
+    });
+
+    const pos = particlesGeo.attributes.position.array;
+    const alpha = particlesGeo.attributes.alpha.array;
+    const sizes = particlesGeo.attributes.size.array;
+    for (let i = 0; i < activeParticleCount; i++) {
+      const lifeProgress = 1 - lifetimes[i] / startLife[i];
+      const plume = Math.max(0, pos[i * 3 + 1] - emitterY);
+      const seed = particleSeeds[i];
+      const curl = Math.sin(t * 0.95 + seed + plume * 2.1);
+      const crossCurl = Math.cos(t * 0.72 + seed * 1.37 + plume * 1.45);
+      const spread = 0.0009 + plume * 0.0018;
+
+      pos[i * 3]     += velocities[i * 3] + curl * spread;
+      pos[i * 3 + 1] += velocities[i * 3 + 1] * (0.72 + lifeProgress * 0.38);
+      pos[i * 3 + 2] += velocities[i * 3 + 2] + crossCurl * spread * 0.72;
+
+      alpha[i] = Math.sin(Math.min(1, lifeProgress) * Math.PI) * (0.08 + Math.min(plume, 2.2) * 0.055);
+      sizes[i] = (0.2 + lifeProgress * 1.05 + Math.sin(seed + t * 0.4) * 0.06) * (viewportProfile.mobile ? 0.68 : 1);
+
+      lifetimes[i] -= dt * 0.28;
+      if (lifetimes[i] <= 0 || pos[i * 3 + 1] > emitterY + 3.35 || Math.abs(pos[i * 3]) > emitterWidth * 1.1) {
+        resetParticle(i);
+      }
     }
-    attr.needsUpdate = true;
-  });
-
-  scentPulseRings.forEach((ring, index) => {
-    const p = (t * 0.16 + ring.userData.phase) % 1;
-    const scaleX = 0.85 + p * 3.1;
-    const scaleZ = 0.28 + p * 1.2;
-    ring.position.set(0, emitterY + 0.18 + p * 1.35, -0.04);
-    ring.scale.set(scaleX, scaleZ, 1);
-    ring.material.opacity = (1 - p) * (viewportProfile.mobile ? 0.16 : 0.24);
-  });
-
-  // Update particles
-  const pos = particlesGeo.attributes.position.array;
-  const alpha = particlesGeo.attributes.alpha.array;
-  const sizes = particlesGeo.attributes.size.array;
-  for (let i = 0; i < activeParticleCount; i++) {
-    const lifeProgress = 1 - lifetimes[i] / startLife[i];
-    const plume = Math.max(0, pos[i * 3 + 1] - emitterY);
-    const seed = particleSeeds[i];
-    const curl = Math.sin(t * 0.95 + seed + plume * 2.1);
-    const crossCurl = Math.cos(t * 0.72 + seed * 1.37 + plume * 1.45);
-    const spread = 0.0009 + plume * 0.0018;
-
-    pos[i * 3]     += velocities[i * 3] + curl * spread;
-    pos[i * 3 + 1] += velocities[i * 3 + 1] * (0.72 + lifeProgress * 0.38);
-    pos[i * 3 + 2] += velocities[i * 3 + 2] + crossCurl * spread * 0.72;
-
-    alpha[i] = Math.sin(Math.min(1, lifeProgress) * Math.PI) * (0.08 + Math.min(plume, 2.2) * 0.055);
-    sizes[i] = (0.2 + lifeProgress * 1.05 + Math.sin(seed + t * 0.4) * 0.06) * (viewportProfile.mobile ? 0.68 : 1);
-
-    lifetimes[i] -= dt * 0.28;
-    if (lifetimes[i] <= 0 || pos[i * 3 + 1] > emitterY + 3.35 || Math.abs(pos[i * 3]) > emitterWidth * 1.1) {
-      resetParticle(i);
-    }
+    particlesGeo.attributes.position.needsUpdate = true;
+    particlesGeo.attributes.alpha.needsUpdate = true;
+    particlesGeo.attributes.size.needsUpdate = true;
   }
-  particlesGeo.attributes.position.needsUpdate = true;
-  particlesGeo.attributes.alpha.needsUpdate = true;
-  particlesGeo.attributes.size.needsUpdate = true;
 
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
@@ -2229,17 +2248,17 @@ document.querySelectorAll('.scent-card').forEach((card, index) => {
   const hex = getComputedStyle(card).getPropertyValue('--scent-color').trim();
   card.setAttribute('role', 'button');
   card.setAttribute('tabindex', '0');
-  card.setAttribute('aria-label', `Preview ${card.querySelector('.scent-name').textContent}`);
-  card.addEventListener('mouseenter', () => particleTargetColor.set(hex));
+  card.setAttribute('aria-label', `Select ${card.querySelector('.scent-name').textContent}`);
+  card.addEventListener('mouseenter', () => selectScent(card, index));
   card.addEventListener('mouseleave', () => {
     if (activeScentCard !== card) particleTargetColor.copy(particleDefaultColor);
   });
   card.addEventListener('focus', () => selectScent(card, index));
-  card.addEventListener('click', () => openScentPreview(card, index));
+  card.addEventListener('click', () => selectScent(card, index));
   card.addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      openScentPreview(card, index);
+      selectScent(card, index);
     }
   });
 });
