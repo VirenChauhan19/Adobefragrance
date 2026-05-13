@@ -289,66 +289,77 @@
   }
   .scent-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
     background: transparent;
-    margin-top: 60px;
+    margin-top: 44px;
   }
   .scent-card {
     background:
-      linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025)),
+      linear-gradient(145deg, rgba(255,255,255,0.075), rgba(255,255,255,0.03)),
       rgba(12,12,16,0.92);
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 8px;
-    padding: 24px;
-    min-height: 250px;
+    padding: 22px;
+    min-height: 190px;
     display: flex; flex-direction: column;
     justify-content: space-between;
-    transition: background 0.4s;
+    transition: background 0.25s, border-color 0.25s, transform 0.25s;
     cursor: pointer;
     position: relative;
     overflow: hidden;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    outline: none;
   }
   .scent-card::before {
     content: '';
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--scent-color), white 18%) 0%, transparent 34%),
-      linear-gradient(135deg, color-mix(in srgb, var(--scent-color), transparent 22%), transparent 62%);
-    opacity: 0;
-    transition: opacity 0.4s;
+      linear-gradient(90deg, var(--scent-color), transparent 42%),
+      radial-gradient(circle at 85% 18%, color-mix(in srgb, var(--scent-color), transparent 68%) 0%, transparent 28%);
+    opacity: 0.12;
+    transition: opacity 0.25s;
   }
   .scent-card::after {
-    content: 'Preview scent profile';
+    content: 'Open preview';
     position: absolute;
     left: 24px;
     right: auto;
     bottom: 24px;
-    transform: translateY(8px);
-    padding: 9px 11px;
-    border: 1px solid color-mix(in srgb, var(--scent-color), white 28%);
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--scent-color), #050507 78%);
-    color: white;
+    padding: 8px 10px;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.78);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.13em;
     text-transform: uppercase;
-    opacity: 0;
-    transition: opacity 0.28s ease, transform 0.28s ease;
+    opacity: 1;
+    transition: color 0.25s, border-color 0.25s, background 0.25s;
     z-index: 3;
   }
-  .scent-card:hover {
+  .scent-card:hover,
+  .scent-card:focus-visible,
+  .scent-card.is-active {
     border-color: color-mix(in srgb, var(--scent-color), white 24%);
     background:
-      linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.035)),
+      linear-gradient(145deg, rgba(255,255,255,0.105), rgba(255,255,255,0.04)),
       rgba(14,14,20,0.96);
+    transform: translateY(-3px);
   }
-  .scent-card:hover::before { opacity: 0.32; }
-  .scent-card:hover::after { opacity: 1; transform: translateY(0); }
-  .scent-card:hover .scent-name { transform: translateY(-4px); }
+  .scent-card:hover::before,
+  .scent-card:focus-visible::before,
+  .scent-card.is-active::before { opacity: 0.2; }
+  .scent-card:hover::after,
+  .scent-card:focus-visible::after,
+  .scent-card.is-active::after {
+    color: white;
+    border-color: color-mix(in srgb, var(--scent-color), white 34%);
+    background: color-mix(in srgb, var(--scent-color), #050507 82%);
+  }
+  .scent-card:hover .scent-name { transform: translateY(-2px); }
   .scent-num {
     font-family: 'Fraunces', serif;
     font-size: 14px;
@@ -363,7 +374,7 @@
     line-height: 1.02;
     transition: transform 0.4s;
     position: relative; z-index: 2;
-    max-width: 9ch;
+    max-width: 12ch;
   }
   .scent-notes {
     font-size: 11px;
@@ -372,7 +383,7 @@
     letter-spacing: 0.12em;
     line-height: 1.7;
     position: relative; z-index: 2;
-    padding-bottom: 46px;
+    padding-bottom: 44px;
   }
   .scent-notes::before {
     content: '';
@@ -471,6 +482,11 @@
     .notification.show { transform: translateY(0); }
     .scroll-progress { display: none; }
     .cursor, .cursor-ring { display: none !important; }
+    .scent-preview { padding: 14px; align-items: end; }
+    .scent-preview-panel { grid-template-columns: 1fr; max-height: calc(100svh - 28px); overflow: auto; }
+    .scent-video { min-height: 260px; }
+    .scent-preview-copy { padding: 24px; }
+    .scent-preview-meta { grid-template-columns: 1fr; }
   }
 
   @media (min-width: 769px) and (max-width: 1100px) {
@@ -609,24 +625,196 @@
   .scent-card > div:nth-child(2)::before {
     content: '';
     display: block;
-    width: 76px;
-    height: 76px;
-    border-radius: 50%;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
     background:
-      radial-gradient(circle, color-mix(in srgb, var(--scent-color), white 10%) 0%, color-mix(in srgb, var(--scent-color), transparent 48%) 38%, transparent 70%);
-    filter: blur(2px);
-    opacity: 0.55;
-    margin-bottom: 18px;
+      linear-gradient(145deg, color-mix(in srgb, var(--scent-color), white 12%), color-mix(in srgb, var(--scent-color), #050507 42%));
+    box-shadow: 0 0 22px color-mix(in srgb, var(--scent-color), transparent 70%);
+    opacity: 0.88;
+    margin-bottom: 20px;
     transition: opacity 0.3s, transform 0.3s;
   }
   .scent-card:hover > div:nth-child(2)::before {
-    opacity: 0.9;
-    transform: scale(1.12);
+    opacity: 1;
+    transform: scale(1.04);
   }
 
   .scent-card:hover,
   .product-card:hover {
     box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+  }
+
+  .scent-preview {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(0,0,0,0.58);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+  .scent-preview.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .scent-preview-panel {
+    width: min(860px, 100%);
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(260px, 0.85fr);
+    gap: 0;
+    background: #08080d;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 28px 90px rgba(0,0,0,0.55);
+    transform: translateY(12px) scale(0.98);
+    transition: transform 0.22s ease;
+  }
+  .scent-preview.open .scent-preview-panel {
+    transform: translateY(0) scale(1);
+  }
+  .scent-video {
+    min-height: 360px;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 62%, color-mix(in srgb, var(--preview-color), transparent 48%), transparent 32%),
+      linear-gradient(145deg, #0b0b12, #050507);
+  }
+  .scent-video::before,
+  .scent-video::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 18%;
+    width: 220px;
+    height: 220px;
+    border: 1px solid color-mix(in srgb, var(--preview-color), white 28%);
+    border-radius: 50%;
+    transform: translateX(-50%) scale(0.3);
+    opacity: 0;
+    animation: preview-ring 3.2s ease-out infinite;
+  }
+  .scent-video::after {
+    animation-delay: 1.45s;
+  }
+  .scent-stream {
+    position: absolute;
+    left: 50%;
+    bottom: 13%;
+    width: 42%;
+    height: 66%;
+    transform: translateX(-50%);
+    background:
+      radial-gradient(ellipse at 50% 84%, color-mix(in srgb, var(--preview-color), white 10%) 0%, transparent 18%),
+      radial-gradient(ellipse at 38% 58%, color-mix(in srgb, var(--preview-color), transparent 30%) 0%, transparent 28%),
+      radial-gradient(ellipse at 64% 32%, color-mix(in srgb, var(--preview-color), white 24%) 0%, transparent 22%);
+    filter: blur(18px);
+    opacity: 0.8;
+    animation: preview-breathe 4.8s ease-in-out infinite;
+  }
+  .scent-wave {
+    position: absolute;
+    left: 50%;
+    bottom: 20%;
+    width: 2px;
+    height: 58%;
+    background: color-mix(in srgb, var(--preview-color), white 16%);
+    box-shadow:
+      -42px 22px 0 color-mix(in srgb, var(--preview-color), transparent 44%),
+      46px -14px 0 color-mix(in srgb, var(--preview-color), transparent 50%),
+      82px 40px 0 color-mix(in srgb, var(--preview-color), transparent 62%);
+    border-radius: 999px;
+    opacity: 0.7;
+    transform: translateX(-50%) rotate(8deg);
+    animation: preview-sway 3.8s ease-in-out infinite;
+  }
+  @keyframes preview-ring {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.28); }
+    18% { opacity: 0.55; }
+    100% { opacity: 0; transform: translateX(-50%) scale(1.45); }
+  }
+  @keyframes preview-breathe {
+    0%, 100% { transform: translateX(-50%) scale(0.92) skewX(-4deg); opacity: 0.62; }
+    50% { transform: translateX(-50%) scale(1.08) skewX(5deg); opacity: 0.9; }
+  }
+  @keyframes preview-sway {
+    0%, 100% { transform: translateX(-50%) rotate(-7deg) scaleY(0.94); }
+    50% { transform: translateX(-50%) rotate(9deg) scaleY(1.05); }
+  }
+  .scent-preview-copy {
+    padding: 34px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 28px;
+  }
+  .scent-preview-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+  }
+  .scent-preview-num {
+    color: var(--preview-color);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .scent-preview h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(34px, 5vw, 58px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+  }
+  .scent-preview-close {
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.06);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+  }
+  .scent-preview-notes {
+    color: rgba(255,255,255,0.72);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .scent-preview-desc {
+    color: rgba(255,255,255,0.68);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .scent-preview-meta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .scent-preview-meta span {
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 12px;
+    color: rgba(255,255,255,0.72);
+    font-size: 12px;
+  }
+
+  @media (max-width: 768px) {
+    .scent-preview { padding: 14px; align-items: end; }
+    .scent-preview-panel { grid-template-columns: 1fr; max-height: calc(100svh - 28px); overflow: auto; }
+    .scent-video { min-height: 260px; }
+    .scent-preview-copy { padding: 24px; }
+    .scent-preview-meta { grid-template-columns: 1fr; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -782,49 +970,49 @@
     <p class="lead" style="max-width: 540px; color: rgba(255,255,255,0.65);">Each fragrance is paired to a creative mode. Hover to feel it.</p>
 
     <div class="scent-grid">
-      <div class="scent-card" style="--scent-color: #ff6b6b;">
+      <div class="scent-card" style="--scent-color: #d96b73;">
         <div class="scent-num">N°01</div>
         <div><div class="scent-name">Pixel Bloom</div></div>
         <div class="scent-notes">Rose · Iron · Static</div>
         <div class="scent-active">✦ Now diffusing</div>
       </div>
-      <div class="scent-card" style="--scent-color: #c77dff;">
+      <div class="scent-card" style="--scent-color: #9d78d6;">
         <div class="scent-num">N°02</div>
         <div><div class="scent-name">Render Smoke</div></div>
         <div class="scent-notes">Oud · Solder · Velvet</div>
         <div class="scent-active">✦ Now diffusing</div>
       </div>
-      <div class="scent-card" style="--scent-color: #7cc4ff;">
+      <div class="scent-card" style="--scent-color: #6fa8c9;">
         <div class="scent-num">N°03</div>
         <div><div class="scent-name">Vector Rain</div></div>
         <div class="scent-notes">Petrichor · Mint · Ink</div>
         <div class="scent-active">✦ Now diffusing</div>
       </div>
-      <div class="scent-card" style="--scent-color: #b8ffb1;">
+      <div class="scent-card" style="--scent-color: #8dbf8a;">
         <div class="scent-num">N°04</div>
         <div><div class="scent-name">Layer Garden</div></div>
         <div class="scent-notes">Fig leaf · Moss · Paper</div>
         <div class="scent-active">✦ Now diffusing</div>
       </div>
-      <div class="scent-card" style="--scent-color: #ffb84d;">
+      <div class="scent-card" style="--scent-color: #d79a4a;">
         <div class="scent-num">N°05</div>
         <div><div class="scent-name">Export Dawn</div></div>
         <div class="scent-notes">Amber · Citrus · Linen</div>
         <div class="scent-active">✦ Now diffusing</div>
       </div>
-      <div class="scent-card" style="--scent-color: #ff3d7f;">
+      <div class="scent-card" style="--scent-color: #c94d70;">
         <div class="scent-num">N°06</div>
         <div><div class="scent-name">Crimson Save</div></div>
         <div class="scent-notes">Leather · Saffron · Heat</div>
         <div class="scent-active">✦ Now diffusing</div>
       </div>
-      <div class="scent-card" style="--scent-color: #4ecdc4;">
+      <div class="scent-card" style="--scent-color: #55a9a3;">
         <div class="scent-num">N°07</div>
         <div><div class="scent-name">Glyph Tide</div></div>
         <div class="scent-notes">Sea salt · Cedar · Glass</div>
         <div class="scent-active">✦ Now diffusing</div>
       </div>
-      <div class="scent-card" style="--scent-color: #e8e8e8;">
+      <div class="scent-card" style="--scent-color: #c9c7be;">
         <div class="scent-num">N°08</div>
         <div><div class="scent-name">White Space</div></div>
         <div class="scent-notes">Cotton · Sandal · Air</div>
@@ -832,6 +1020,34 @@
       </div>
     </div>
   </section>
+
+  <div class="scent-preview" id="scentPreview" aria-hidden="true">
+    <div class="scent-preview-panel" role="dialog" aria-modal="true" aria-labelledby="previewName">
+      <div class="scent-video" id="previewVideo">
+        <div class="scent-stream"></div>
+        <div class="scent-wave"></div>
+      </div>
+      <div class="scent-preview-copy">
+        <div>
+          <div class="scent-preview-top">
+            <div>
+              <div class="scent-preview-num" id="previewNum">N°01</div>
+              <h3 id="previewName">Pixel Bloom</h3>
+            </div>
+            <button class="scent-preview-close" id="previewClose" type="button" aria-label="Close scent preview">×</button>
+          </div>
+        </div>
+        <div>
+          <div class="scent-preview-notes" id="previewNotes">Rose · Iron · Static</div>
+          <p class="scent-preview-desc" id="previewDesc">A bright floral-metallic lift for starting a visual direction and moving fast through first drafts.</p>
+        </div>
+        <div class="scent-preview-meta">
+          <span id="previewApp">Pairs with Photoshop</span>
+          <span id="previewMoment">Best for ideation</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <section class="products-section">
     <div class="products-header">
@@ -1628,11 +1844,122 @@ updateResponsiveScene();
 applyScroll();
 animate();
 
-// ===== SCENT CARD → PARTICLE COLOR =====
-document.querySelectorAll('.scent-card').forEach(card => {
+// ===== SCENT CARD INTERACTION =====
+const scentProfiles = [
+  {
+    desc: 'A bright floral-metallic lift for starting a visual direction and moving fast through first drafts.',
+    app: 'Pairs with Photoshop',
+    moment: 'Best for ideation'
+  },
+  {
+    desc: 'A smoky, velvet-warm profile that makes long renders and timeline polish feel intentional.',
+    app: 'Pairs with Premiere Pro',
+    moment: 'Best for deep work'
+  },
+  {
+    desc: 'Cool petrichor and mint notes for precision work, grids, paths, and clean vector decisions.',
+    app: 'Pairs with Illustrator',
+    moment: 'Best for precision'
+  },
+  {
+    desc: 'Soft green fig and moss for organizing layers, naming files, and bringing order back to a large project.',
+    app: 'Pairs with InDesign',
+    moment: 'Best for structure'
+  },
+  {
+    desc: 'A warm amber-citrus release that signals completion, export checks, and the last review pass.',
+    app: 'Pairs with Acrobat',
+    moment: 'Best for final delivery'
+  },
+  {
+    desc: 'Leather, saffron, and heat for bold edits, decisive saves, and committing to the strongest version.',
+    app: 'Pairs with After Effects',
+    moment: 'Best for bold choices'
+  },
+  {
+    desc: 'Clean sea salt and cedar for typography, glyph rhythm, and quiet interface-focused work.',
+    app: 'Pairs with Adobe XD',
+    moment: 'Best for UI flow'
+  },
+  {
+    desc: 'A soft cotton-air reset for negative space, critique breaks, and clearing the visual field.',
+    app: 'Pairs with Creative Cloud',
+    moment: 'Best for reset'
+  }
+];
+
+const previewEl = document.getElementById('scentPreview');
+const previewVideo = document.getElementById('previewVideo');
+const previewNum = document.getElementById('previewNum');
+const previewName = document.getElementById('previewName');
+const previewNotes = document.getElementById('previewNotes');
+const previewDesc = document.getElementById('previewDesc');
+const previewApp = document.getElementById('previewApp');
+const previewMoment = document.getElementById('previewMoment');
+const previewClose = document.getElementById('previewClose');
+let activeScentCard = null;
+
+function openScentPreview(card, index) {
+  const profile = scentProfiles[index];
   const hex = getComputedStyle(card).getPropertyValue('--scent-color').trim();
+  const num = card.querySelector('.scent-num').textContent;
+  const name = card.querySelector('.scent-name').textContent;
+  const notes = card.querySelector('.scent-notes').textContent;
+
+  if (activeScentCard) activeScentCard.classList.remove('is-active');
+  activeScentCard = card;
+  activeScentCard.classList.add('is-active');
+
+  previewEl.style.setProperty('--preview-color', hex);
+  previewVideo.style.setProperty('--preview-color', hex);
+  previewNum.textContent = num;
+  previewName.textContent = name;
+  previewNotes.textContent = notes;
+  previewDesc.textContent = profile.desc;
+  previewApp.textContent = profile.app;
+  previewMoment.textContent = profile.moment;
+  previewEl.classList.add('open');
+  previewEl.setAttribute('aria-hidden', 'false');
+  previewClose.focus();
+  particleTargetColor.set(hex);
+}
+
+function closeScentPreview() {
+  previewEl.classList.remove('open');
+  previewEl.setAttribute('aria-hidden', 'true');
+  if (activeScentCard) {
+    const card = activeScentCard;
+    activeScentCard.classList.remove('is-active');
+    activeScentCard = null;
+    card.focus();
+  }
+  particleTargetColor.copy(particleDefaultColor);
+}
+
+document.querySelectorAll('.scent-card').forEach((card, index) => {
+  const hex = getComputedStyle(card).getPropertyValue('--scent-color').trim();
+  card.setAttribute('role', 'button');
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('aria-label', `Preview ${card.querySelector('.scent-name').textContent}`);
   card.addEventListener('mouseenter', () => particleTargetColor.set(hex));
-  card.addEventListener('mouseleave', () => particleTargetColor.copy(particleDefaultColor));
+  card.addEventListener('mouseleave', () => {
+    if (activeScentCard !== card) particleTargetColor.copy(particleDefaultColor);
+  });
+  card.addEventListener('click', () => openScentPreview(card, index));
+  card.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openScentPreview(card, index);
+    }
+  });
+});
+
+previewClose.addEventListener('click', closeScentPreview);
+previewEl.addEventListener('click', e => {
+  if (e.target === previewEl) closeScentPreview();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && previewEl.classList.contains('open')) closeScentPreview();
 });
 
 // ===== SECTION TEXT REVEAL =====
