@@ -334,6 +334,9 @@
     align-items: flex-start;
   }
   .scent-live-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
     color: color-mix(in srgb, var(--demo-color, #d96b73), white 18%);
     font-size: 11px;
     font-weight: 700;
@@ -341,40 +344,100 @@
     text-transform: uppercase;
     margin-bottom: 12px;
   }
+  .scent-live-label::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--demo-color, #d96b73);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--demo-color, #d96b73), transparent 78%), 0 0 22px var(--demo-color, #d96b73);
+    animation: status-glow 1.8s ease-in-out infinite;
+  }
   .scent-live-name {
     font-family: 'Fraunces', serif;
     font-size: clamp(34px, 4vw, 54px);
     line-height: 0.96;
     letter-spacing: -0.03em;
   }
+  .scent-live-sub {
+    margin-top: 14px;
+    max-width: 360px;
+    color: rgba(255,255,255,0.66);
+    font-size: 14px;
+    line-height: 1.6;
+  }
   .scent-live-timer {
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 12px;
+    min-width: 170px;
+    background: rgba(255,255,255,0.045);
     color: rgba(255,255,255,0.72);
-    font-size: 11px;
-    letter-spacing: 0.12em;
+  }
+  .scent-live-timer strong {
+    display: block;
+    color: white;
+    font-size: 18px;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .scent-live-timer span {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    white-space: nowrap;
+  }
+  .scent-live-meter {
+    height: 3px;
+    margin-top: 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    overflow: hidden;
+  }
+  .scent-live-meter::before {
+    content: '';
+    display: block;
+    width: 38%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--demo-color, #d96b73);
+    box-shadow: 0 0 16px var(--demo-color, #d96b73);
+    animation: release-meter 4.8s ease-in-out infinite;
   }
   .scent-live-device {
     position: absolute;
     left: 50%;
     bottom: 72px;
-    width: min(78%, 440px);
-    transform: translateX(-50%) perspective(900px) rotateX(5deg) rotateY(-7deg);
+    width: min(82%, 500px);
+    transform: translateX(-50%) perspective(1100px) rotateX(6deg) rotateY(-8deg);
     transform-style: preserve-3d;
     z-index: 1;
   }
+  .scent-live-device::before {
+    content: '';
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: -18px;
+    height: 34px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(0,0,0,0.45), transparent 68%);
+    filter: blur(10px);
+    transform: translateZ(-30px);
+  }
   .scent-live-screen {
     aspect-ratio: 16 / 10;
-    border: 1px solid rgba(255,255,255,0.16);
-    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
     background:
-      linear-gradient(180deg, rgba(255,255,255,0.13), transparent 16%),
-      radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--demo-color, #d96b73), transparent 76%), transparent 42%),
-      #101118;
-    box-shadow: 0 18px 60px rgba(0,0,0,0.48), inset 0 0 0 8px #08090e;
+      linear-gradient(180deg, rgba(255,255,255,0.11), transparent 14%),
+      linear-gradient(90deg, rgba(255,255,255,0.03), transparent 18%, transparent 82%, rgba(255,255,255,0.035)),
+      #08090d;
+    box-shadow:
+      0 22px 70px rgba(0,0,0,0.55),
+      inset 0 0 0 8px #050609,
+      inset 0 0 0 10px rgba(255,255,255,0.03);
     position: relative;
     transform: translateZ(16px);
   }
@@ -383,34 +446,71 @@
     position: absolute;
     left: 18%;
     right: 18%;
-    top: -10px;
-    height: 4px;
+    top: -9px;
+    height: 5px;
     border-radius: 999px;
     background: color-mix(in srgb, var(--demo-color, #d96b73), white 12%);
-    box-shadow: 0 0 22px color-mix(in srgb, var(--demo-color, #d96b73), transparent 22%);
+    box-shadow: 0 0 28px color-mix(in srgb, var(--demo-color, #d96b73), transparent 12%);
   }
   .scent-live-screen::after {
-    content: 'FOCUS RELEASE';
+    content: 'Adobe Focus Canvas';
     position: absolute;
-    left: 20px;
+    left: 60px;
+    right: 18px;
+    top: 42px;
     bottom: 18px;
-    color: rgba(255,255,255,0.58);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.2em;
+    border-radius: 6px;
+    background:
+      radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--demo-color, #d96b73), transparent 48%), transparent 34%),
+      linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.015));
+    border: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.42);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: flex-end;
+    padding: 14px;
+  }
+  .scent-live-ui {
+    position: absolute;
+    inset: 10px;
+    border-radius: 6px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .scent-live-ui::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 46px;
+    background:
+      linear-gradient(#151722, #0d0e15),
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.16) 0 18px, transparent 18px 36px);
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .scent-live-ui::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 26px;
+    background: #191b25;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
   }
   .scent-live-stand {
-    width: 18%;
-    height: 48px;
+    width: 17%;
+    height: 58px;
     margin: 0 auto;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), rgba(255,255,255,0.07), transparent);
+    transform: translateZ(-4px);
   }
   .scent-live-base {
-    width: 54%;
-    height: 10px;
+    width: 58%;
+    height: 13px;
     margin: 0 auto;
     border-radius: 999px;
-    background: rgba(255,255,255,0.12);
+    background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.18), rgba(255,255,255,0.05));
+    box-shadow: 0 14px 28px rgba(0,0,0,0.4);
   }
   .scent-live-plume,
   .scent-live-plume::before,
@@ -418,31 +518,31 @@
     position: absolute;
     content: '';
     left: 50%;
-    top: -118px;
-    width: 150px;
-    height: 210px;
+    top: -132px;
+    width: 210px;
+    height: 250px;
     border-radius: 50%;
     transform: translateX(-50%);
     background:
       radial-gradient(ellipse at 50% 82%, color-mix(in srgb, var(--demo-color, #d96b73), white 16%) 0%, transparent 24%),
       radial-gradient(ellipse at 38% 50%, color-mix(in srgb, var(--demo-color, #d96b73), transparent 36%) 0%, transparent 31%);
-    filter: blur(14px);
+    filter: blur(16px);
     opacity: 0.82;
     animation: device-scent 5s ease-in-out infinite;
   }
   .scent-live-plume::before {
-    left: 42%;
-    top: 6px;
-    width: 82px;
-    height: 190px;
+    left: 32%;
+    top: 20px;
+    width: 115px;
+    height: 210px;
     animation-delay: -1.4s;
     opacity: 0.56;
   }
   .scent-live-plume::after {
-    left: 60%;
-    top: 24px;
-    width: 92px;
-    height: 170px;
+    left: 70%;
+    top: 18px;
+    width: 125px;
+    height: 205px;
     animation-delay: -2.5s;
     opacity: 0.5;
   }
@@ -457,10 +557,10 @@
     animation: device-scent 5s ease-in-out infinite;
   }
   @keyframes device-scent {
-    0% { transform: translateX(-50%) translateY(18px) scale(0.78) skewX(-5deg); opacity: 0.22; }
+    0% { transform: translateX(-50%) translateY(20px) scale(0.68, 0.58) skewX(-5deg); opacity: 0.18; }
     18% { opacity: 0.92; }
-    48% { transform: translateX(-50%) translateY(-20px) scale(1.18) skewX(6deg); opacity: 0.86; }
-    100% { transform: translateX(-50%) translateY(-46px) scale(1.38) skewX(-3deg); opacity: 0.18; }
+    48% { transform: translateX(-50%) translateY(-22px) scale(1.25, 1.04) skewX(6deg); opacity: 0.9; }
+    100% { transform: translateX(-50%) translateY(-62px) scale(1.72, 1.32) skewX(-3deg); opacity: 0.14; }
   }
   .scent-live-copy {
     position: absolute;
@@ -475,9 +575,35 @@
   .scent-live-copy span {
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
-    padding: 12px;
-    color: rgba(255,255,255,0.72);
+    padding: 13px 14px;
+    background: rgba(255,255,255,0.045);
+    color: rgba(255,255,255,0.76);
     font-size: 12px;
+    line-height: 1.35;
+  }
+  .scent-live-copy span::before {
+    display: block;
+    color: color-mix(in srgb, var(--demo-color, #d96b73), white 18%);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+  .scent-live-copy span:first-child::before {
+    content: 'Notes';
+  }
+  .scent-live-copy span:last-child::before {
+    content: 'Mode';
+  }
+  @keyframes status-glow {
+    0%, 100% { transform: scale(0.9); opacity: 0.75; }
+    50% { transform: scale(1.18); opacity: 1; }
+  }
+  @keyframes release-meter {
+    0% { transform: translateX(-100%); width: 28%; }
+    55% { width: 62%; }
+    100% { transform: translateX(275%); width: 28%; }
   }
   .scent-card {
     background:
@@ -1234,11 +1360,17 @@
           <div>
             <div class="scent-live-label" id="liveLabel">Selected scent</div>
             <div class="scent-live-name" id="liveName">Pixel Bloom</div>
+            <p class="scent-live-sub" id="liveDesc">A bright floral-metallic lift for starting a visual direction and moving fast through first drafts.</p>
           </div>
-          <div class="scent-live-timer">Next release · 8h</div>
+          <div class="scent-live-timer">
+            <strong>8h</strong>
+            <span>Next focus release</span>
+            <div class="scent-live-meter"></div>
+          </div>
         </div>
         <div class="scent-live-device">
           <div class="scent-live-screen">
+            <div class="scent-live-ui"></div>
             <div class="scent-live-plume"></div>
           </div>
           <div class="scent-live-stand"></div>
@@ -2269,6 +2401,7 @@ const previewMoment = document.getElementById('previewMoment');
 const previewClose = document.getElementById('previewClose');
 const liveDemo = document.getElementById('scentLiveDemo');
 const liveName = document.getElementById('liveName');
+const liveDesc = document.getElementById('liveDesc');
 const liveNotes = document.getElementById('liveNotes');
 const liveMoment = document.getElementById('liveMoment');
 let activeScentCard = null;
@@ -2296,6 +2429,7 @@ function selectScent(card, index) {
   activeScentCard.classList.add('is-active');
   liveDemo.style.setProperty('--demo-color', hex);
   liveName.textContent = name;
+  liveDesc.textContent = profile.desc;
   liveNotes.textContent = notes;
   liveMoment.textContent = profile.moment;
   particleTargetColor.set(hex);
