@@ -289,12 +289,36 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: var(--scent-color);
+    background:
+      radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--scent-color), white 18%) 0%, transparent 34%),
+      linear-gradient(135deg, color-mix(in srgb, var(--scent-color), transparent 22%), transparent 62%);
     opacity: 0;
     transition: opacity 0.4s;
   }
-  .scent-card:hover::before { opacity: 0.18; }
-  .scent-card:hover .scent-name { transform: translateY(-4px); }
+  .scent-card::after {
+    content: 'Preview scent';
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    top: 50%;
+    transform: translateY(10px);
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--scent-color), white 38%);
+    border-radius: 8px;
+    background: rgba(5,5,7,0.72);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-align: center;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.28s ease, transform 0.28s ease;
+    z-index: 3;
+  }
+  .scent-card:hover::before { opacity: 0.36; }
+  .scent-card:hover::after { opacity: 1; transform: translateY(-50%); }
+  .scent-card:hover .scent-name { transform: translateY(-10px); }
   .scent-num {
     font-family: 'Fraunces', serif;
     font-size: 13px;
@@ -316,6 +340,17 @@
     text-transform: uppercase;
     letter-spacing: 0.15em;
     position: relative; z-index: 2;
+  }
+  .scent-notes::before {
+    content: '';
+    display: block;
+    width: 34px;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--scent-color);
+    box-shadow: 0 0 18px var(--scent-color);
+    margin-bottom: 12px;
+    opacity: 0.75;
   }
 
   .products-section {
@@ -524,12 +559,17 @@
   .product-card:hover { transition: transform 0.1s, background 0.3s; }
 
   .scent-card .scent-active {
-    position: absolute; bottom: 10px; right: 14px;
-    font-size: 9px; letter-spacing: 0.15em;
-    text-transform: uppercase; color: var(--scent-color);
-    opacity: 0; transition: opacity 0.3s; z-index: 2;
+    position: absolute; top: 18px; right: 18px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--scent-color);
+    color: transparent;
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--scent-color), transparent 72%), 0 0 28px var(--scent-color);
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 2;
   }
-  .scent-card:hover .scent-active { opacity: 1; }
+  .scent-card:hover .scent-active { opacity: 1; transform: scale(1.15); }
 
   .scent-card:hover,
   .product-card:hover {
@@ -832,7 +872,7 @@ function getViewportProfile() {
     mobile,
     tablet,
     dpr: mobile ? 1.15 : tablet ? 1.35 : 1.6,
-    particleCount: reduceMotion ? 120 : mobile ? 220 : tablet ? 320 : 460,
+    particleCount: reduceMotion ? 90 : mobile ? 150 : tablet ? 220 : 300,
     appPanelCount: reduceMotion ? 2 : mobile ? 3 : 5,
     cameraFov: mobile ? 46 : tablet ? 43 : 40
   };
@@ -1177,20 +1217,46 @@ const particleMat = new THREE.ShaderMaterial({
 const particles = new THREE.Points(particlesGeo, particleMat);
 sceneGroup.add(particles);
 
-const scentRibbonGroup = new THREE.Group();
-const scentRibbonMats = [
-  new THREE.MeshBasicMaterial({ color: 0xff8a5c, transparent: true, opacity: 0.14, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
-  new THREE.MeshBasicMaterial({ color: 0xffd0b5, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+const scentTrailGroup = new THREE.Group();
+const scentTrailMats = [
+  new THREE.LineBasicMaterial({ color: 0xff8a5c, transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false }),
+  new THREE.LineBasicMaterial({ color: 0xffd8c2, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false }),
+  new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false })
 ];
-const scentRibbons = scentRibbonMats.map((mat, ribbonIndex) => {
-  const ribbon = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 3.6, 1, 24), mat);
-  ribbon.position.set(ribbonIndex === 0 ? -0.55 : 0.68, emitterY + 1.35, -0.06 - ribbonIndex * 0.08);
-  ribbon.rotation.z = ribbonIndex === 0 ? -0.2 : 0.24;
-  ribbon.userData = { phase: ribbonIndex * 1.7, baseX: ribbon.position.x };
-  scentRibbonGroup.add(ribbon);
-  return ribbon;
+const TRAIL_POINTS = 46;
+const scentTrails = scentTrailMats.map((mat, trailIndex) => {
+  const trailGeo = new THREE.BufferGeometry();
+  const trailPositions = new Float32Array(TRAIL_POINTS * 3);
+  trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+  const trail = new THREE.Line(trailGeo, mat);
+  trail.userData = {
+    phase: trailIndex * 2.1,
+    baseX: [-0.65, 0.08, 0.72][trailIndex],
+    width: [0.38, 0.52, 0.32][trailIndex]
+  };
+  scentTrailGroup.add(trail);
+  return trail;
 });
-sceneGroup.add(scentRibbonGroup);
+sceneGroup.add(scentTrailGroup);
+
+const scentPulseGroup = new THREE.Group();
+const scentPulseRings = [0, 1, 2].map((_, index) => {
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(0.46, 0.006, 8, 72),
+    new THREE.MeshBasicMaterial({
+      color: 0xffb08a,
+      transparent: true,
+      opacity: 0.18,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    })
+  );
+  ring.rotation.x = Math.PI / 2;
+  ring.userData = { phase: index / 3 };
+  scentPulseGroup.add(ring);
+  return ring;
+});
+sceneGroup.add(scentPulseGroup);
 
 // ===== DESK SURFACE =====
 const deskGeo = new THREE.PlaneGeometry(20, 12);
@@ -1292,9 +1358,12 @@ function updateResponsiveScene() {
   });
 
   particleMat.uniforms.uBaseSize.value = mobile ? 32 : tablet ? 38 : 42;
-  scentRibbonGroup.scale.set(mobile ? 0.72 : tablet ? 0.86 : 1, mobile ? 0.82 : tablet ? 0.92 : 1, 1);
-  scentRibbonMats.forEach((mat, index) => {
-    mat.opacity = reduceMotion ? 0.045 : mobile ? (index === 0 ? 0.08 : 0.045) : (index === 0 ? 0.14 : 0.08);
+  scentTrailGroup.scale.set(mobile ? 0.72 : tablet ? 0.86 : 1, mobile ? 0.82 : tablet ? 0.92 : 1, 1);
+  scentPulseGroup.scale.setScalar(mobile ? 0.72 : tablet ? 0.88 : 1);
+  scentTrailMats.forEach((mat, index) => {
+    const desktopOpacities = [0.32, 0.18, 0.12];
+    const mobileOpacities = [0.22, 0.12, 0.08];
+    mat.opacity = reduceMotion ? 0.06 : mobile ? mobileOpacities[index] : desktopOpacities[index];
   });
   activeParticleCount = Math.min(PARTICLE_COUNT, viewportProfile.particleCount);
   particlesGeo.setDrawRange(0, activeParticleCount);
@@ -1388,8 +1457,12 @@ function animate() {
   // Reactive particle color lerp
   particleCurrentColor.lerp(particleTargetColor, 0.04);
   particleMat.uniforms.uColor.value.copy(particleCurrentColor);
-  scentRibbonMats[0].color.copy(particleCurrentColor);
-  scentRibbonMats[1].color.copy(particleCurrentColor).lerp(new THREE.Color(0xffffff), 0.45);
+  scentTrailMats[0].color.copy(particleCurrentColor);
+  scentTrailMats[1].color.copy(particleCurrentColor).lerp(new THREE.Color(0xffffff), 0.52);
+  scentTrailMats[2].color.copy(particleCurrentColor).lerp(new THREE.Color(0xffffff), 0.78);
+  scentPulseRings.forEach((ring, index) => {
+    ring.material.color.copy(particleCurrentColor).lerp(new THREE.Color(0xffffff), 0.34 + index * 0.12);
+  });
 
   // Hotspots — only visible in stage 0 (before first scroll threshold)
   const progressY = currentScrollY / window.innerHeight;
@@ -1430,13 +1503,30 @@ function animate() {
     panel.rotation.z = Math.sin(t * 0.32 + index) * 0.025;
   });
 
-  scentRibbons.forEach((ribbon, index) => {
-    const phase = ribbon.userData.phase;
-    ribbon.position.x = ribbon.userData.baseX + Math.sin(t * 0.45 + phase) * 0.18;
-    ribbon.position.y = emitterY + 1.25 + Math.cos(t * 0.35 + phase) * 0.12;
-    ribbon.rotation.z = (index === 0 ? -0.2 : 0.24) + Math.sin(t * 0.32 + phase) * 0.18;
-    ribbon.scale.x = 1 + Math.sin(t * 0.5 + phase) * 0.18;
-    ribbon.scale.y = 1 + Math.cos(t * 0.38 + phase) * 0.08;
+  scentTrails.forEach((trail, index) => {
+    const attr = trail.geometry.attributes.position;
+    const arr = attr.array;
+    const phase = trail.userData.phase;
+    const width = trail.userData.width;
+    for (let j = 0; j < TRAIL_POINTS; j++) {
+      const p = j / (TRAIL_POINTS - 1);
+      const breathe = Math.sin(t * 0.48 + phase + p * 3.8);
+      const curl = Math.sin(t * 0.64 + phase + p * 7.2) * width * p;
+      const drift = Math.cos(t * 0.38 + phase + p * 5.1) * 0.12 * p;
+      arr[j * 3] = trail.userData.baseX + curl + drift;
+      arr[j * 3 + 1] = emitterY + p * 3.25 + breathe * 0.08;
+      arr[j * 3 + 2] = -0.08 - index * 0.06 + Math.cos(t * 0.46 + phase + p * 6.4) * 0.16 * p;
+    }
+    attr.needsUpdate = true;
+  });
+
+  scentPulseRings.forEach((ring, index) => {
+    const p = (t * 0.16 + ring.userData.phase) % 1;
+    const scaleX = 0.85 + p * 3.1;
+    const scaleZ = 0.28 + p * 1.2;
+    ring.position.set(0, emitterY + 0.18 + p * 1.35, -0.04);
+    ring.scale.set(scaleX, scaleZ, 1);
+    ring.material.opacity = (1 - p) * (viewportProfile.mobile ? 0.12 : 0.18);
   });
 
   // Update particles
@@ -1455,8 +1545,8 @@ function animate() {
     pos[i * 3 + 1] += velocities[i * 3 + 1] * (0.72 + lifeProgress * 0.38);
     pos[i * 3 + 2] += velocities[i * 3 + 2] + crossCurl * spread * 0.72;
 
-    alpha[i] = Math.sin(Math.min(1, lifeProgress) * Math.PI) * (0.16 + Math.min(plume, 2.4) * 0.12);
-    sizes[i] = (0.32 + lifeProgress * 1.6 + Math.sin(seed + t * 0.4) * 0.08) * (viewportProfile.mobile ? 0.72 : 1);
+    alpha[i] = Math.sin(Math.min(1, lifeProgress) * Math.PI) * (0.08 + Math.min(plume, 2.2) * 0.055);
+    sizes[i] = (0.2 + lifeProgress * 1.05 + Math.sin(seed + t * 0.4) * 0.06) * (viewportProfile.mobile ? 0.68 : 1);
 
     lifetimes[i] -= dt * 0.28;
     if (lifetimes[i] <= 0 || pos[i * 3 + 1] > emitterY + 3.35 || Math.abs(pos[i * 3]) > emitterWidth * 1.1) {
