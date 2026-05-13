@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Recurse \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\Github_AI201\\\\Adobefragrance\" -Force)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)"
+    ]
+  }
+}

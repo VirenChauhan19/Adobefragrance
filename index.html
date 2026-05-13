@@ -352,10 +352,107 @@
     .scent-section, .products-section { padding: 80px 24px; }
     .notification { right: 16px; max-width: 220px; padding: 14px; }
     .scroll-progress { display: none; }
+    .cursor, .cursor-ring, .hotspot { display: none !important; }
   }
+
+  /* ===== REACTIVE ENHANCEMENTS ===== */
+
+  .cursor {
+    position: fixed; width: 8px; height: 8px;
+    background: white; border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    left: 0; top: 0;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: difference;
+    transition: width 0.25s, height 0.25s, background 0.25s;
+  }
+  .cursor-ring {
+    position: fixed; width: 34px; height: 34px;
+    border: 1.5px solid rgba(255,255,255,0.45);
+    border-radius: 50%; pointer-events: none; z-index: 9998;
+    left: 0; top: 0;
+    transform: translate(-50%, -50%);
+    transition: border-color 0.3s, width 0.3s, height 0.3s;
+  }
+  .cursor.hovered { width: 5px; height: 5px; }
+  .cursor-ring.hovered { width: 52px; height: 52px; border-color: var(--adobe-red); }
+
+  .hotspot {
+    position: fixed; z-index: 20;
+    pointer-events: auto; cursor: default;
+    display: none;
+  }
+  .hotspot-dot {
+    width: 11px; height: 11px;
+    background: rgba(235,16,0,0.9);
+    border-radius: 50%; position: relative;
+    animation: hspot-pulse 2.2s ease-out infinite;
+  }
+  .hotspot-dot::after {
+    content: ''; position: absolute; inset: -5px;
+    border: 1px solid rgba(235,16,0,0.45);
+    border-radius: 50%;
+    animation: hspot-ring 2.2s ease-out infinite;
+  }
+  @keyframes hspot-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(235,16,0,0.7); }
+    55% { box-shadow: 0 0 0 9px rgba(235,16,0,0); }
+  }
+  @keyframes hspot-ring {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+  .hotspot-label {
+    position: absolute; left: 22px; top: 50%;
+    transform: translateY(-50%) translateX(-8px);
+    background: rgba(6,6,10,0.92);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 10px;
+    padding: 10px 14px; min-width: 185px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.22s, transform 0.22s;
+    white-space: nowrap;
+  }
+  .hotspot:hover .hotspot-label {
+    opacity: 1; transform: translateY(-50%) translateX(0);
+  }
+  .hotspot-label strong {
+    display: block; font-size: 12px; font-weight: 600;
+    color: white; margin-bottom: 4px;
+  }
+  .hotspot-label span {
+    font-size: 10.5px; color: rgba(255,255,255,0.5);
+    line-height: 1.55; display: block;
+  }
+
+  .section .text-block > * {
+    opacity: 0; transform: translateY(22px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .section .text-block > *:nth-child(2) { transition-delay: 0.1s; }
+  .section .text-block > *:nth-child(3) { transition-delay: 0.22s; }
+  .section .text-block > *:nth-child(4) { transition-delay: 0.34s; }
+  .section[data-visible] .text-block > * { opacity: 1; transform: translateY(0); }
+
+  .scent-card, .product-card { will-change: transform; }
+  .scent-card { transition: background 0.4s, transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94); }
+  .scent-card:hover { transition: background 0.4s, transform 0.1s; }
+  .product-card { transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94), background 0.3s; }
+  .product-card:hover { transition: transform 0.1s, background 0.3s; }
+
+  .scent-card .scent-active {
+    position: absolute; bottom: 10px; right: 14px;
+    font-size: 9px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--scent-color);
+    opacity: 0; transition: opacity 0.3s; z-index: 2;
+  }
+  .scent-card:hover .scent-active { opacity: 1; }
 </style>
 </head>
 <body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
 
 <!-- Reusable Adobe 'A' SVG: stylized triangular A with cutout -->
 <svg style="display:none;" xmlns="http://www.w3.org/2000/svg">
@@ -399,6 +496,29 @@
     <div class="notif-sub">N°02 Render Smoke · Every 8h</div>
   </div>
   <div class="notif-pulse"></div>
+</div>
+
+<!-- 3D model hotspots -->
+<div class="hotspot" id="hs-atomizer">
+  <div class="hotspot-dot"></div>
+  <div class="hotspot-label">
+    <strong>Atomizer Array</strong>
+    <span>72 micro-nozzles along the top edge.<br>Whisper-silent, never wet, never sticky.</span>
+  </div>
+</div>
+<div class="hotspot" id="hs-screen">
+  <div class="hotspot-dot"></div>
+  <div class="hotspot-label">
+    <strong>5K Creator Display</strong>
+    <span>P3 wide color. 1000 nits peak.<br>Synced to your Creative Cloud focus.</span>
+  </div>
+</div>
+<div class="hotspot" id="hs-cartridge">
+  <div class="hotspot-dot"></div>
+  <div class="hotspot-label">
+    <strong>Signature Cartridge</strong>
+    <span>90 days per fill. Magnetic bay,<br>tool-free swap. 12 scents available.</span>
+  </div>
 </div>
 
 <div class="scroll-progress"><div class="scroll-progress-bar" id="progressBar"></div></div>
@@ -453,41 +573,49 @@
         <div class="scent-num">N°01</div>
         <div><div class="scent-name">Pixel Bloom</div></div>
         <div class="scent-notes">Rose · Iron · Static</div>
+        <div class="scent-active">✦ Now diffusing</div>
       </div>
       <div class="scent-card" style="--scent-color: #c77dff;">
         <div class="scent-num">N°02</div>
         <div><div class="scent-name">Render Smoke</div></div>
         <div class="scent-notes">Oud · Solder · Velvet</div>
+        <div class="scent-active">✦ Now diffusing</div>
       </div>
       <div class="scent-card" style="--scent-color: #7cc4ff;">
         <div class="scent-num">N°03</div>
         <div><div class="scent-name">Vector Rain</div></div>
         <div class="scent-notes">Petrichor · Mint · Ink</div>
+        <div class="scent-active">✦ Now diffusing</div>
       </div>
       <div class="scent-card" style="--scent-color: #b8ffb1;">
         <div class="scent-num">N°04</div>
         <div><div class="scent-name">Layer Garden</div></div>
         <div class="scent-notes">Fig leaf · Moss · Paper</div>
+        <div class="scent-active">✦ Now diffusing</div>
       </div>
       <div class="scent-card" style="--scent-color: #ffb84d;">
         <div class="scent-num">N°05</div>
         <div><div class="scent-name">Export Dawn</div></div>
         <div class="scent-notes">Amber · Citrus · Linen</div>
+        <div class="scent-active">✦ Now diffusing</div>
       </div>
       <div class="scent-card" style="--scent-color: #ff3d7f;">
         <div class="scent-num">N°06</div>
         <div><div class="scent-name">Crimson Save</div></div>
         <div class="scent-notes">Leather · Saffron · Heat</div>
+        <div class="scent-active">✦ Now diffusing</div>
       </div>
       <div class="scent-card" style="--scent-color: #4ecdc4;">
         <div class="scent-num">N°07</div>
         <div><div class="scent-name">Glyph Tide</div></div>
         <div class="scent-notes">Sea salt · Cedar · Glass</div>
+        <div class="scent-active">✦ Now diffusing</div>
       </div>
       <div class="scent-card" style="--scent-color: #e8e8e8;">
         <div class="scent-num">N°08</div>
         <div><div class="scent-name">White Space</div></div>
         <div class="scent-notes">Cotton · Sandal · Air</div>
+        <div class="scent-active">✦ Now diffusing</div>
       </div>
     </div>
   </section>
@@ -842,6 +970,47 @@ const tmpLook = new THREE.Vector3();
 function lerp(a, b, t) { return a + (b - a) * t; }
 function smoothstep(t) { return t * t * (3 - 2 * t); }
 
+// ===== REACTIVE STATE =====
+let scrollRotY = 0;
+let currentScrollY = 0;
+let mouseNX = 0, mouseNY = 0;
+let parallaxX = 0, parallaxY = 0;
+
+const cursorEl = document.getElementById('cursor');
+const cursorRingEl = document.getElementById('cursorRing');
+let cursorX = window.innerWidth / 2, cursorY = window.innerHeight / 2;
+let ringX = cursorX, ringY = cursorY;
+
+document.addEventListener('mousemove', e => {
+  mouseNX = (e.clientX / window.innerWidth) - 0.5;
+  mouseNY = (e.clientY / window.innerHeight) - 0.5;
+  cursorX = e.clientX; cursorY = e.clientY;
+  cursorEl.style.left = cursorX + 'px';
+  cursorEl.style.top  = cursorY + 'px';
+});
+
+// Cursor hover state
+document.querySelectorAll('a, button, .scent-card, .product-card, .nav-cta, .hotspot').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursorEl.classList.add('hovered'); cursorRingEl.classList.add('hovered'); });
+  el.addEventListener('mouseleave', () => { cursorEl.classList.remove('hovered'); cursorRingEl.classList.remove('hovered'); });
+});
+
+// Particle color reactive to scent card hover
+const particleDefaultColor = new THREE.Color(0xff8a5c);
+let particleTargetColor = new THREE.Color(0xff8a5c);
+let particleCurrentColor = new THREE.Color(0xff8a5c);
+
+// 3D→2D projection helper
+function toScreen(worldPos) {
+  const v = worldPos.clone().project(camera);
+  return { x: (v.x * 0.5 + 0.5) * window.innerWidth, y: (-v.y * 0.5 + 0.5) * window.innerHeight, z: v.z };
+}
+
+const _wp = new THREE.Vector3();
+const hsAtomizer   = document.getElementById('hs-atomizer');
+const hsScreen     = document.getElementById('hs-screen');
+const hsCartridge  = document.getElementById('hs-cartridge');
+
 function applyScroll() {
   const sectionH = window.innerHeight;
   const totalScroll = sectionH * 3;
@@ -869,7 +1038,8 @@ function applyScroll() {
   );
   camera.lookAt(tmpLook);
 
-  sceneGroup.rotation.y = lerp(a.rotY, b.rotY, segT);
+  scrollRotY = lerp(a.rotY, b.rotY, segT);
+  currentScrollY = scrollY;
 
   document.getElementById('backdrop').style.background =
     `radial-gradient(ellipse at 50% 50%, ${b.bg} 0%, #0a0a12 50%, #050507 100%)`;
@@ -905,6 +1075,37 @@ const clock = new THREE.Clock();
 function animate() {
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
+
+  // Cursor ring lag
+  ringX = lerp(ringX, cursorX, 0.12);
+  ringY = lerp(ringY, cursorY, 0.12);
+  cursorRingEl.style.left = ringX + 'px';
+  cursorRingEl.style.top  = ringY + 'px';
+
+  // Mouse parallax — smoothly tilt scene toward cursor
+  parallaxX = lerp(parallaxX, mouseNX * 0.28, 0.04);
+  parallaxY = lerp(parallaxY, -mouseNY * 0.16, 0.04);
+  sceneGroup.rotation.y = scrollRotY + parallaxX;
+  sceneGroup.rotation.x = parallaxY;
+
+  // Reactive particle color lerp
+  particleCurrentColor.lerp(particleTargetColor, 0.04);
+  particleMat.color.copy(particleCurrentColor);
+
+  // Hotspots — only visible in stage 0 (before first scroll threshold)
+  const stageZero = currentScrollY < window.innerHeight * 0.4;
+  function placeHotspot(el, mesh) {
+    mesh.getWorldPosition(_wp);
+    const s = toScreen(_wp);
+    if (stageZero && s.z < 1) {
+      el.style.display = 'block';
+      el.style.left = s.x + 'px';
+      el.style.top  = s.y + 'px';
+    } else { el.style.display = 'none'; }
+  }
+  placeHotspot(hsAtomizer,  slit);
+  placeHotspot(hsScreen,    screenMesh);
+  placeHotspot(hsCartridge, cartBody);
 
   // Subtle breathing on the monitor
   monitorGroup.position.y = Math.sin(t * 0.6) * 0.02;
@@ -942,6 +1143,37 @@ window.addEventListener('resize', () => {
 
 applyScroll();
 animate();
+
+// ===== SCENT CARD → PARTICLE COLOR =====
+document.querySelectorAll('.scent-card').forEach(card => {
+  const hex = getComputedStyle(card).getPropertyValue('--scent-color').trim();
+  card.addEventListener('mouseenter', () => particleTargetColor.set(hex));
+  card.addEventListener('mouseleave', () => particleTargetColor.copy(particleDefaultColor));
+});
+
+// ===== SECTION TEXT REVEAL =====
+const sectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.setAttribute('data-visible', '');
+    else e.target.removeAttribute('data-visible');
+  });
+}, { threshold: 0.25 });
+document.querySelectorAll('.section').forEach(s => sectionObserver.observe(s));
+
+// ===== 3D CARD TILT =====
+function attachTilt(selector, maxDeg) {
+  document.querySelectorAll(selector).forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width  - 0.5);
+      const y = ((e.clientY - r.top)  / r.height - 0.5);
+      card.style.transform = `perspective(700px) rotateX(${-y * maxDeg}deg) rotateY(${x * maxDeg}deg) translateY(-5px)`;
+    });
+    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+  });
+}
+attachTilt('.product-card', 12);
+attachTilt('.scent-card', 8);
 </script>
 
 </body>
