@@ -68,13 +68,51 @@
     inset: 0;
     z-index: 1;
     pointer-events: none;
+    transition: opacity 0.45s ease;
+    will-change: opacity;
   }
   #canvas3d { width: 100%; height: 100%; display: block; }
 
   .backdrop {
     position: fixed; inset: 0; z-index: 0;
-    background: radial-gradient(ellipse at 50% 50%, #1a0a18 0%, #0a0a12 50%, #050507 100%);
-    transition: background 1.2s ease;
+    background:
+      radial-gradient(ellipse at 50% 50%, var(--bg-core, #1a0a18) 0%, #0a0a12 52%, #050507 100%);
+    overflow: hidden;
+    transition: opacity 0.6s ease;
+  }
+  .backdrop::before,
+  .backdrop::after {
+    content: '';
+    position: absolute;
+    inset: -18%;
+    opacity: 0.55;
+    will-change: transform, opacity;
+    pointer-events: none;
+  }
+  .backdrop::before {
+    background:
+      radial-gradient(circle at 20% 35%, rgba(235, 16, 0, 0.28), transparent 22%),
+      radial-gradient(circle at 72% 28%, rgba(76, 205, 196, 0.16), transparent 24%),
+      radial-gradient(circle at 58% 72%, rgba(255, 184, 77, 0.12), transparent 26%);
+    filter: blur(28px);
+    animation: scent-drift 18s ease-in-out infinite alternate;
+  }
+  .backdrop::after {
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 42px),
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08), transparent 40%);
+    mix-blend-mode: screen;
+    opacity: 0.22;
+    animation: vapor-lines 24s linear infinite;
+  }
+  @keyframes scent-drift {
+    0% { transform: translate3d(-2%, 1%, 0) scale(1); }
+    50% { transform: translate3d(3%, -2%, 0) scale(1.05); }
+    100% { transform: translate3d(1%, 3%, 0) scale(1.02); }
+  }
+  @keyframes vapor-lines {
+    from { transform: translate3d(-2%, -2%, 0); }
+    to { transform: translate3d(2%, 2%, 0); }
   }
 
   .scroll-container { position: relative; z-index: 2; }
@@ -339,8 +377,10 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     background: var(--adobe-red);
-    height: 0%;
-    transition: height 0.1s linear;
+    height: 100%;
+    transform: scaleY(0);
+    transform-origin: top;
+    will-change: transform;
   }
 
   @media (max-width: 768px) {
@@ -362,17 +402,19 @@
     background: white; border-radius: 50%;
     pointer-events: none; z-index: 9999;
     left: 0; top: 0;
-    transform: translate(-50%, -50%);
+    transform: translate3d(-50%, -50%, 0);
     mix-blend-mode: difference;
     transition: width 0.25s, height 0.25s, background 0.25s;
+    will-change: transform;
   }
   .cursor-ring {
     position: fixed; width: 34px; height: 34px;
     border: 1.5px solid rgba(255,255,255,0.45);
     border-radius: 50%; pointer-events: none; z-index: 9998;
     left: 0; top: 0;
-    transform: translate(-50%, -50%);
+    transform: translate3d(-50%, -50%, 0);
     transition: border-color 0.3s, width 0.3s, height 0.3s;
+    will-change: transform;
   }
   .cursor.hovered { width: 5px; height: 5px; }
   .cursor-ring.hovered { width: 52px; height: 52px; border-color: var(--adobe-red); }
@@ -381,6 +423,8 @@
     position: fixed; z-index: 20;
     pointer-events: auto; cursor: default;
     display: none;
+    transform: translate3d(-50%, -50%, 0);
+    will-change: transform;
   }
   .hotspot-dot {
     width: 11px; height: 11px;
@@ -448,6 +492,27 @@
     opacity: 0; transition: opacity 0.3s; z-index: 2;
   }
   .scent-card:hover .scent-active { opacity: 1; }
+
+  .scent-card:hover,
+  .product-card:hover {
+    box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .backdrop::before,
+    .backdrop::after,
+    .scroll-cue,
+    .hotspot-dot,
+    .hotspot-dot::after,
+    .notif-pulse {
+      animation: none !important;
+    }
+    .section .text-block > * {
+      transition: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
 </style>
 </head>
 <body>
@@ -697,6 +762,12 @@
 import * as THREE from 'three';
 
 const canvas = document.getElementById('canvas3d');
+const root = document.documentElement;
+const progressBar = document.getElementById('progressBar');
+const notificationEl = document.getElementById('notification');
+const stageEl = document.querySelector('.stage');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
 const scene = new THREE.Scene();
 scene.fog = new THREE.Fog(0x0a0a12, 10, 35);
 
@@ -704,7 +775,8 @@ const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerH
 camera.position.set(0, 1.2, 8);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const maxDpr = window.innerWidth < 900 || isCoarsePointer ? 1.25 : 1.6;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000, 0);
 
@@ -883,7 +955,7 @@ cartridgeGroup.position.set(2.6, -1.6, 0.5);
 sceneGroup.add(cartridgeGroup);
 
 // ===== FRAGRANCE PARTICLES (rising from top edge of monitor) =====
-const PARTICLE_COUNT = 600;
+const PARTICLE_COUNT = reduceMotion ? 140 : (window.innerWidth < 900 ? 260 : 420);
 const particlesGeo = new THREE.BufferGeometry();
 const positions = new Float32Array(PARTICLE_COUNT * 3);
 const velocities = new Float32Array(PARTICLE_COUNT * 3);
@@ -980,13 +1052,13 @@ const cursorEl = document.getElementById('cursor');
 const cursorRingEl = document.getElementById('cursorRing');
 let cursorX = window.innerWidth / 2, cursorY = window.innerHeight / 2;
 let ringX = cursorX, ringY = cursorY;
+let latestBg = stages[0].bg;
+let stageVisible = true;
 
 document.addEventListener('mousemove', e => {
   mouseNX = (e.clientX / window.innerWidth) - 0.5;
   mouseNY = (e.clientY / window.innerHeight) - 0.5;
   cursorX = e.clientX; cursorY = e.clientY;
-  cursorEl.style.left = cursorX + 'px';
-  cursorEl.style.top  = cursorY + 'px';
 });
 
 // Cursor hover state
@@ -1017,7 +1089,7 @@ function applyScroll() {
   const scrollY = Math.min(window.scrollY, totalScroll);
   const progress = scrollY / totalScroll;
 
-  document.getElementById('progressBar').style.height = (progress * 100) + '%';
+  progressBar.style.transform = `scaleY(${progress})`;
 
   const segF = progress * (stages.length - 1);
   const segIdx = Math.min(Math.floor(segF), stages.length - 2);
@@ -1041,22 +1113,19 @@ function applyScroll() {
   scrollRotY = lerp(a.rotY, b.rotY, segT);
   currentScrollY = scrollY;
 
-  document.getElementById('backdrop').style.background =
-    `radial-gradient(ellipse at 50% 50%, ${b.bg} 0%, #0a0a12 50%, #050507 100%)`;
+  if (b.bg !== latestBg) {
+    latestBg = b.bg;
+    root.style.setProperty('--bg-core', latestBg);
+  }
 
-  const notif = document.getElementById('notification');
   if (progress > 0.55 && progress < 0.85) {
-    notif.classList.add('show');
+    notificationEl.classList.add('show');
   } else {
-    notif.classList.remove('show');
+    notificationEl.classList.remove('show');
   }
 
-  const stageEl = document.querySelector('.stage');
-  if (scrollY > totalScroll + sectionH * 0.5) {
-    stageEl.style.opacity = '0';
-  } else {
-    stageEl.style.opacity = '1';
-  }
+  stageVisible = scrollY <= totalScroll + sectionH * 0.5;
+  stageEl.style.opacity = stageVisible ? '1' : '0';
 }
 
 let scrollTicking = false;
@@ -1079,8 +1148,16 @@ function animate() {
   // Cursor ring lag
   ringX = lerp(ringX, cursorX, 0.12);
   ringY = lerp(ringY, cursorY, 0.12);
-  cursorRingEl.style.left = ringX + 'px';
-  cursorRingEl.style.top  = ringY + 'px';
+  cursorEl.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+  cursorRingEl.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
+
+  if (!stageVisible) {
+    hsAtomizer.style.display = 'none';
+    hsScreen.style.display = 'none';
+    hsCartridge.style.display = 'none';
+    requestAnimationFrame(animate);
+    return;
+  }
 
   // Mouse parallax — smoothly tilt scene toward cursor
   parallaxX = lerp(parallaxX, mouseNX * 0.28, 0.04);
@@ -1099,8 +1176,7 @@ function animate() {
     const s = toScreen(_wp);
     if (stageZero && s.z < 1) {
       el.style.display = 'block';
-      el.style.left = s.x + 'px';
-      el.style.top  = s.y + 'px';
+      el.style.transform = `translate3d(${s.x}px, ${s.y}px, 0) translate(-50%, -50%)`;
     } else { el.style.display = 'none'; }
   }
   placeHotspot(hsAtomizer,  slit);
@@ -1138,7 +1214,9 @@ function animate() {
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
   renderer.setSize(window.innerWidth, window.innerHeight);
+  applyScroll();
 });
 
 applyScroll();
@@ -1163,17 +1241,31 @@ document.querySelectorAll('.section').forEach(s => sectionObserver.observe(s));
 // ===== 3D CARD TILT =====
 function attachTilt(selector, maxDeg) {
   document.querySelectorAll(selector).forEach(card => {
-    card.addEventListener('mousemove', e => {
+    let frame = 0;
+    let nextTransform = '';
+    card.addEventListener('pointermove', e => {
       const r = card.getBoundingClientRect();
       const x = ((e.clientX - r.left) / r.width  - 0.5);
       const y = ((e.clientY - r.top)  / r.height - 0.5);
-      card.style.transform = `perspective(700px) rotateX(${-y * maxDeg}deg) rotateY(${x * maxDeg}deg) translateY(-5px)`;
+      nextTransform = `perspective(700px) rotateX(${-y * maxDeg}deg) rotateY(${x * maxDeg}deg) translateY(-5px)`;
+      if (!frame) {
+        frame = requestAnimationFrame(() => {
+          card.style.transform = nextTransform;
+          frame = 0;
+        });
+      }
     });
-    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+    card.addEventListener('pointerleave', () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      card.style.transform = '';
+    });
   });
 }
-attachTilt('.product-card', 12);
-attachTilt('.scent-card', 8);
+if (!isCoarsePointer && !reduceMotion) {
+  attachTilt('.product-card', 12);
+  attachTilt('.scent-card', 8);
+}
 </script>
 
 </body>
