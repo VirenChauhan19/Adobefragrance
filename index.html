@@ -387,12 +387,26 @@
     nav { padding: 12px 18px; gap: 16px; }
     nav ul { display: none; }
     .text-block, .text-block.right { max-width: 100%; margin: 0; }
-    .section { padding: 0 24px; }
+    .section { min-height: 100svh; height: 100svh; padding: 0 22px; }
+    h1.hero { font-size: clamp(48px, 17vw, 78px); }
+    h2 { font-size: clamp(34px, 12vw, 54px); }
+    .lead { font-size: 16px; max-width: 31rem; }
+    .meta { flex-direction: column; gap: 10px; }
     .scent-grid { grid-template-columns: repeat(2, 1fr); }
+    .scent-card { padding: 26px 18px; min-height: 170px; aspect-ratio: auto; }
+    .scent-name { font-size: 22px; }
+    .products-grid { grid-template-columns: 1fr; }
     .scent-section, .products-section { padding: 80px 24px; }
-    .notification { right: 16px; max-width: 220px; padding: 14px; }
+    .notification { top: auto; right: 14px; bottom: 22px; max-width: min(300px, calc(100vw - 28px)); padding: 14px; transform: translateY(16px); }
+    .notification.show { transform: translateY(0); }
     .scroll-progress { display: none; }
-    .cursor, .cursor-ring, .hotspot { display: none !important; }
+    .cursor, .cursor-ring { display: none !important; }
+  }
+
+  @media (min-width: 769px) and (max-width: 1100px) {
+    .section { padding: 0 6vw; }
+    .text-block { max-width: 430px; }
+    .scent-grid { grid-template-columns: repeat(3, 1fr); }
   }
 
   /* ===== REACTIVE ENHANCEMENTS ===== */
@@ -458,8 +472,32 @@
     transition: opacity 0.22s, transform 0.22s;
     white-space: nowrap;
   }
+  .hotspot.flip-x .hotspot-label {
+    left: auto; right: 22px;
+    transform: translateY(-50%) translateX(8px);
+  }
+  .hotspot.flip-y .hotspot-label {
+    top: auto; bottom: -8px;
+    transform: translateX(-8px);
+  }
   .hotspot:hover .hotspot-label {
     opacity: 1; transform: translateY(-50%) translateX(0);
+  }
+  .hotspot.flip-x:hover .hotspot-label {
+    transform: translateY(-50%) translateX(0);
+  }
+  .hotspot.flip-y:hover .hotspot-label {
+    transform: translateX(0);
+  }
+  .hotspot.touch-open .hotspot-label {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+  .hotspot.flip-x.touch-open .hotspot-label {
+    transform: translateY(-50%) translateX(0);
+  }
+  .hotspot.flip-y.touch-open .hotspot-label {
+    transform: translateX(0);
   }
   .hotspot-label strong {
     display: block; font-size: 12px; font-weight: 600;
@@ -511,6 +549,23 @@
       transition: none;
       opacity: 1;
       transform: none;
+    }
+  }
+
+  @media (hover: none) {
+    .hotspot {
+      pointer-events: auto;
+    }
+    .hotspot-dot {
+      width: 14px; height: 14px;
+    }
+    .hotspot-label {
+      min-width: 0;
+      max-width: min(230px, calc(100vw - 48px));
+      white-space: normal;
+    }
+    .hotspot-label span br {
+      display: none;
     }
   }
 </style>
@@ -768,15 +823,29 @@ const notificationEl = document.getElementById('notification');
 const stageEl = document.querySelector('.stage');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+function getViewportProfile() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const mobile = w < 760 || isCoarsePointer;
+  const tablet = !mobile && w < 1120;
+  return {
+    mobile,
+    tablet,
+    dpr: mobile ? 1.15 : tablet ? 1.35 : 1.6,
+    particleCount: reduceMotion ? 120 : mobile ? 220 : tablet ? 320 : 460,
+    appPanelCount: reduceMotion ? 2 : mobile ? 3 : 5,
+    cameraFov: mobile ? 46 : tablet ? 43 : 40
+  };
+}
+let viewportProfile = getViewportProfile();
 const scene = new THREE.Scene();
 scene.fog = new THREE.Fog(0x0a0a12, 10, 35);
 
-const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+const camera = new THREE.PerspectiveCamera(viewportProfile.cameraFov, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 1.2, 8);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-const maxDpr = window.innerWidth < 900 || isCoarsePointer ? 1.25 : 1.6;
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, viewportProfile.dpr));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000, 0);
 
@@ -928,6 +997,67 @@ monitorGroup.add(accent);
 
 sceneGroup.add(monitorGroup);
 
+// ===== FLOATING CREATIVE CLOUD APP WINDOWS =====
+const appPanelsGroup = new THREE.Group();
+const appPanelDefs = [
+  { app: 'Ps', name: 'Photoshop', colorA: '#001E36', colorB: '#31A8FF', x: -3.5, y: 1.25, z: -1.2, r: 0.32 },
+  { app: 'Ai', name: 'Illustrator', colorA: '#330000', colorB: '#FF9A00', x: 3.25, y: 1.05, z: -1.35, r: -0.34 },
+  { app: 'Pr', name: 'Premiere', colorA: '#00005B', colorB: '#9999FF', x: -3.15, y: -0.35, z: -1.0, r: 0.2 },
+  { app: 'Ae', name: 'After Effects', colorA: '#1A0533', colorB: '#9999FF', x: 3.55, y: -0.45, z: -1.1, r: -0.22 },
+  { app: 'Ac', name: 'Acrobat', colorA: '#b30b00', colorB: '#EB1000', x: 0.0, y: 1.95, z: -1.65, r: 0.03 }
+];
+
+function makeAppPanel(def, i) {
+  const c = document.createElement('canvas');
+  c.width = 420;
+  c.height = 280;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 420, 280);
+  grad.addColorStop(0, def.colorA);
+  grad.addColorStop(1, def.colorB);
+  ctx.fillStyle = 'rgba(8, 8, 14, 0.92)';
+  ctx.fillRect(0, 0, 420, 280);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 420, 44);
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.beginPath(); ctx.arc(24, 22, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(44, 22, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(64, 22, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.96)';
+  ctx.font = '600 26px Inter, sans-serif';
+  ctx.fillText(def.app, 334, 30);
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.font = '600 20px Inter, sans-serif';
+  ctx.fillText(def.name, 24, 86);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  for (let row = 0; row < 4; row++) {
+    const width = 220 + ((row + i) % 3) * 42;
+    ctx.fillRect(24, 116 + row * 30, width, 10);
+  }
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.fillRect(300, 76, 82, 150);
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.fillRect(318, 96, 46, 46);
+  ctx.fillRect(318, 158, 46, 10);
+  ctx.fillRect(318, 180, 36, 10);
+
+  const tex = new THREE.CanvasTexture(c);
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex,
+    transparent: true,
+    opacity: 0.54,
+    depthWrite: false
+  });
+  const panel = new THREE.Mesh(new THREE.PlaneGeometry(1.85, 1.23), mat);
+  panel.position.set(def.x, def.y, def.z);
+  panel.rotation.y = def.r;
+  panel.userData = { baseX: def.x, baseY: def.y, baseZ: def.z, phase: i * 0.9 };
+  return panel;
+}
+
+appPanelDefs.forEach((def, i) => appPanelsGroup.add(makeAppPanel(def, i)));
+sceneGroup.add(appPanelsGroup);
+
 // ===== THE DIFFUSER CARTRIDGE (small, sits beside the monitor) =====
 const cartridgeGroup = new THREE.Group();
 
@@ -955,10 +1085,14 @@ cartridgeGroup.position.set(2.6, -1.6, 0.5);
 sceneGroup.add(cartridgeGroup);
 
 // ===== FRAGRANCE PARTICLES (rising from top edge of monitor) =====
-const PARTICLE_COUNT = reduceMotion ? 140 : (window.innerWidth < 900 ? 260 : 420);
+const PARTICLE_COUNT = 480;
+let activeParticleCount = Math.min(PARTICLE_COUNT, viewportProfile.particleCount);
 const particlesGeo = new THREE.BufferGeometry();
 const positions = new Float32Array(PARTICLE_COUNT * 3);
 const velocities = new Float32Array(PARTICLE_COUNT * 3);
+const particleSeeds = new Float32Array(PARTICLE_COUNT);
+const particleSizes = new Float32Array(PARTICLE_COUNT);
+const particleAlpha = new Float32Array(PARTICLE_COUNT);
 const lifetimes = new Float32Array(PARTICLE_COUNT);
 const startLife = new Float32Array(PARTICLE_COUNT);
 
@@ -967,25 +1101,33 @@ const emitterWidth = screenW * 0.55;
 
 function resetParticle(i) {
   // Spawn along the atomizer slit (top edge of monitor)
-  positions[i * 3]     = (Math.random() - 0.5) * emitterWidth;
-  positions[i * 3 + 1] = emitterY;
-  positions[i * 3 + 2] = (Math.random() - 0.5) * 0.15;
+  const seed = Math.random() * Math.PI * 2;
+  const edgeBias = Math.pow(Math.random(), 1.8);
+  positions[i * 3]     = (Math.random() - 0.5) * emitterWidth * (0.28 + edgeBias * 0.72);
+  positions[i * 3 + 1] = emitterY + Math.random() * 0.08;
+  positions[i * 3 + 2] = (Math.random() - 0.5) * 0.1;
 
-  // Drift upward with a bit of outward spread
-  velocities[i * 3]     = (Math.random() - 0.5) * 0.006;
-  velocities[i * 3 + 1] = 0.008 + Math.random() * 0.012;
-  velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.004;
+  // Slow vapor drift; most of the shape comes from curl noise in the render loop.
+  velocities[i * 3]     = (Math.random() - 0.5) * 0.0025;
+  velocities[i * 3 + 1] = 0.004 + Math.random() * 0.007;
+  velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.002;
 
-  startLife[i] = 1.0 + Math.random() * 1.5;
+  particleSeeds[i] = seed;
+  particleSizes[i] = 0.35 + Math.random() * 1.1;
+  particleAlpha[i] = 0;
+  startLife[i] = 2.2 + Math.random() * 2.8;
   lifetimes[i] = startLife[i];
 }
 for (let i = 0; i < PARTICLE_COUNT; i++) {
   resetParticle(i);
   // Stagger initial state so particles don't all start at the bottom
   lifetimes[i] = Math.random() * startLife[i];
-  positions[i * 3 + 1] = emitterY + Math.random() * 3.5;
+  positions[i * 3 + 1] = emitterY + Math.random() * 2.8;
 }
 particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+particlesGeo.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+particlesGeo.setAttribute('alpha', new THREE.BufferAttribute(particleAlpha, 1));
+particlesGeo.setDrawRange(0, activeParticleCount);
 
 // Soft circular smoke texture
 const particleCanvas = document.createElement('canvas');
@@ -1000,19 +1142,55 @@ pctx.fillStyle = pgrad;
 pctx.fillRect(0, 0, 128, 128);
 const particleTex = new THREE.CanvasTexture(particleCanvas);
 
-const particleMat = new THREE.PointsMaterial({
-  size: 0.55,
-  map: particleTex,
+const particleMat = new THREE.ShaderMaterial({
+  uniforms: {
+    uTexture: { value: particleTex },
+    uColor: { value: new THREE.Color(0xff8a5c) },
+    uBaseSize: { value: 42 }
+  },
+  vertexShader: `
+    uniform float uBaseSize;
+    attribute float size;
+    attribute float alpha;
+    varying float vAlpha;
+    void main() {
+      vAlpha = alpha;
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = size * uBaseSize * (1.0 / -mvPosition.z);
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D uTexture;
+    uniform vec3 uColor;
+    varying float vAlpha;
+    void main() {
+      vec4 softDot = texture2D(uTexture, gl_PointCoord);
+      gl_FragColor = vec4(uColor, softDot.a * vAlpha);
+    }
+  `,
   transparent: true,
-  opacity: 0.7,
   blending: THREE.AdditiveBlending,
-  depthWrite: false,
-  sizeAttenuation: true,
-  color: 0xff8a5c
+  depthWrite: false
 });
 
 const particles = new THREE.Points(particlesGeo, particleMat);
 sceneGroup.add(particles);
+
+const scentRibbonGroup = new THREE.Group();
+const scentRibbonMats = [
+  new THREE.MeshBasicMaterial({ color: 0xff8a5c, transparent: true, opacity: 0.14, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+  new THREE.MeshBasicMaterial({ color: 0xffd0b5, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+];
+const scentRibbons = scentRibbonMats.map((mat, ribbonIndex) => {
+  const ribbon = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 3.6, 1, 24), mat);
+  ribbon.position.set(ribbonIndex === 0 ? -0.55 : 0.68, emitterY + 1.35, -0.06 - ribbonIndex * 0.08);
+  ribbon.rotation.z = ribbonIndex === 0 ? -0.2 : 0.24;
+  ribbon.userData = { phase: ribbonIndex * 1.7, baseX: ribbon.position.x };
+  scentRibbonGroup.add(ribbon);
+  return ribbon;
+});
+sceneGroup.add(scentRibbonGroup);
 
 // ===== DESK SURFACE =====
 const deskGeo = new THREE.PlaneGeometry(20, 12);
@@ -1067,6 +1245,18 @@ document.querySelectorAll('a, button, .scent-card, .product-card, .nav-cta, .hot
   el.addEventListener('mouseleave', () => { cursorEl.classList.remove('hovered'); cursorRingEl.classList.remove('hovered'); });
 });
 
+if (isCoarsePointer) {
+  document.querySelectorAll('.hotspot').forEach(el => {
+    el.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      document.querySelectorAll('.hotspot.touch-open').forEach(openEl => {
+        if (openEl !== el) openEl.classList.remove('touch-open');
+      });
+      el.classList.toggle('touch-open');
+    });
+  });
+}
+
 // Particle color reactive to scent card hover
 const particleDefaultColor = new THREE.Color(0xff8a5c);
 let particleTargetColor = new THREE.Color(0xff8a5c);
@@ -1079,9 +1269,36 @@ function toScreen(worldPos) {
 }
 
 const _wp = new THREE.Vector3();
+const _hotspotOffset = new THREE.Vector3();
 const hsAtomizer   = document.getElementById('hs-atomizer');
 const hsScreen     = document.getElementById('hs-screen');
 const hsCartridge  = document.getElementById('hs-cartridge');
+
+function updateResponsiveScene() {
+  const mobile = viewportProfile.mobile;
+  const tablet = viewportProfile.tablet;
+  scene.fog.far = mobile ? 24 : 35;
+  camera.fov = viewportProfile.cameraFov;
+  camera.updateProjectionMatrix();
+
+  sceneGroup.scale.setScalar(mobile ? 0.82 : tablet ? 0.92 : 1);
+  sceneGroup.position.x = mobile ? 0.22 : 0;
+  sceneGroup.position.y = mobile ? -0.08 : 0;
+
+  appPanelsGroup.children.forEach((panel, index) => {
+    panel.visible = index < viewportProfile.appPanelCount;
+    panel.material.opacity = mobile ? 0.38 : tablet ? 0.46 : 0.54;
+    panel.scale.setScalar(mobile ? 0.72 : tablet ? 0.86 : 1);
+  });
+
+  particleMat.uniforms.uBaseSize.value = mobile ? 32 : tablet ? 38 : 42;
+  scentRibbonGroup.scale.set(mobile ? 0.72 : tablet ? 0.86 : 1, mobile ? 0.82 : tablet ? 0.92 : 1, 1);
+  scentRibbonMats.forEach((mat, index) => {
+    mat.opacity = reduceMotion ? 0.045 : mobile ? (index === 0 ? 0.08 : 0.045) : (index === 0 ? 0.14 : 0.08);
+  });
+  activeParticleCount = Math.min(PARTICLE_COUNT, viewportProfile.particleCount);
+  particlesGeo.setDrawRange(0, activeParticleCount);
+}
 
 function applyScroll() {
   const sectionH = window.innerHeight;
@@ -1098,10 +1315,12 @@ function applyScroll() {
   const a = stages[segIdx];
   const b = stages[segIdx + 1];
 
+  const compact = viewportProfile.mobile ? 0.84 : viewportProfile.tablet ? 0.93 : 1;
+  const yLift = viewportProfile.mobile ? 0.22 : 0;
   camera.position.set(
-    lerp(a.camPos[0], b.camPos[0], segT),
-    lerp(a.camPos[1], b.camPos[1], segT),
-    lerp(a.camPos[2], b.camPos[2], segT)
+    lerp(a.camPos[0], b.camPos[0], segT) * compact,
+    lerp(a.camPos[1], b.camPos[1], segT) + yLift,
+    lerp(a.camPos[2], b.camPos[2], segT) * (viewportProfile.mobile ? 1.08 : 1)
   );
   tmpLook.set(
     lerp(a.lookAt[0], b.lookAt[0], segT),
@@ -1160,28 +1379,37 @@ function animate() {
   }
 
   // Mouse parallax — smoothly tilt scene toward cursor
-  parallaxX = lerp(parallaxX, mouseNX * 0.28, 0.04);
-  parallaxY = lerp(parallaxY, -mouseNY * 0.16, 0.04);
+  const parallaxStrength = viewportProfile.mobile ? 0.45 : viewportProfile.tablet ? 0.72 : 1;
+  parallaxX = lerp(parallaxX, mouseNX * 0.28 * parallaxStrength, 0.04);
+  parallaxY = lerp(parallaxY, -mouseNY * 0.16 * parallaxStrength, 0.04);
   sceneGroup.rotation.y = scrollRotY + parallaxX;
   sceneGroup.rotation.x = parallaxY;
 
   // Reactive particle color lerp
   particleCurrentColor.lerp(particleTargetColor, 0.04);
-  particleMat.color.copy(particleCurrentColor);
+  particleMat.uniforms.uColor.value.copy(particleCurrentColor);
+  scentRibbonMats[0].color.copy(particleCurrentColor);
+  scentRibbonMats[1].color.copy(particleCurrentColor).lerp(new THREE.Color(0xffffff), 0.45);
 
   // Hotspots — only visible in stage 0 (before first scroll threshold)
-  const stageZero = currentScrollY < window.innerHeight * 0.4;
-  function placeHotspot(el, mesh) {
+  const progressY = currentScrollY / window.innerHeight;
+  const introHotspots = progressY < 0.85;
+  const cartridgeHotspot = progressY < 1.75;
+  function placeHotspot(el, mesh, isVisible, offset) {
     mesh.getWorldPosition(_wp);
+    if (offset) _wp.add(offset);
     const s = toScreen(_wp);
-    if (stageZero && s.z < 1) {
+    if (isVisible && s.z < 1 && s.x > -80 && s.x < window.innerWidth + 80 && s.y > -80 && s.y < window.innerHeight + 80) {
       el.style.display = 'block';
       el.style.transform = `translate3d(${s.x}px, ${s.y}px, 0) translate(-50%, -50%)`;
+      el.classList.toggle('flip-x', s.x > window.innerWidth - 260);
+      el.classList.toggle('flip-y', s.y < 130);
     } else { el.style.display = 'none'; }
   }
-  placeHotspot(hsAtomizer,  slit);
-  placeHotspot(hsScreen,    screenMesh);
-  placeHotspot(hsCartridge, cartBody);
+  placeHotspot(hsAtomizer,  slit, introHotspots);
+  placeHotspot(hsScreen,    screenMesh, introHotspots);
+  _hotspotOffset.set(0, 0.25, 0);
+  placeHotspot(hsCartridge, cartBody, cartridgeHotspot, _hotspotOffset);
 
   // Subtle breathing on the monitor
   monitorGroup.position.y = Math.sin(t * 0.6) * 0.02;
@@ -1193,32 +1421,67 @@ function animate() {
   // Cartridge gently rotates
   cartridgeGroup.rotation.y = t * 0.3;
 
+  appPanelsGroup.children.forEach((panel, index) => {
+    if (!panel.visible) return;
+    const base = panel.userData;
+    const wave = Math.sin(t * 0.55 + base.phase);
+    panel.position.x = base.baseX + wave * 0.08;
+    panel.position.y = base.baseY + Math.cos(t * 0.42 + base.phase) * 0.055;
+    panel.rotation.z = Math.sin(t * 0.32 + index) * 0.025;
+  });
+
+  scentRibbons.forEach((ribbon, index) => {
+    const phase = ribbon.userData.phase;
+    ribbon.position.x = ribbon.userData.baseX + Math.sin(t * 0.45 + phase) * 0.18;
+    ribbon.position.y = emitterY + 1.25 + Math.cos(t * 0.35 + phase) * 0.12;
+    ribbon.rotation.z = (index === 0 ? -0.2 : 0.24) + Math.sin(t * 0.32 + phase) * 0.18;
+    ribbon.scale.x = 1 + Math.sin(t * 0.5 + phase) * 0.18;
+    ribbon.scale.y = 1 + Math.cos(t * 0.38 + phase) * 0.08;
+  });
+
   // Update particles
   const pos = particlesGeo.attributes.position.array;
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    pos[i * 3]     += velocities[i * 3]     + Math.sin(t * 0.5 + i * 0.1) * 0.0015;
-    pos[i * 3 + 1] += velocities[i * 3 + 1];
-    pos[i * 3 + 2] += velocities[i * 3 + 2] + Math.cos(t * 0.5 + i * 0.1) * 0.0010;
+  const alpha = particlesGeo.attributes.alpha.array;
+  const sizes = particlesGeo.attributes.size.array;
+  for (let i = 0; i < activeParticleCount; i++) {
+    const lifeProgress = 1 - lifetimes[i] / startLife[i];
+    const plume = Math.max(0, pos[i * 3 + 1] - emitterY);
+    const seed = particleSeeds[i];
+    const curl = Math.sin(t * 0.95 + seed + plume * 2.1);
+    const crossCurl = Math.cos(t * 0.72 + seed * 1.37 + plume * 1.45);
+    const spread = 0.0009 + plume * 0.0018;
 
-    lifetimes[i] -= dt * 0.4;
-    if (lifetimes[i] <= 0 || pos[i * 3 + 1] > emitterY + 4) {
+    pos[i * 3]     += velocities[i * 3] + curl * spread;
+    pos[i * 3 + 1] += velocities[i * 3 + 1] * (0.72 + lifeProgress * 0.38);
+    pos[i * 3 + 2] += velocities[i * 3 + 2] + crossCurl * spread * 0.72;
+
+    alpha[i] = Math.sin(Math.min(1, lifeProgress) * Math.PI) * (0.16 + Math.min(plume, 2.4) * 0.12);
+    sizes[i] = (0.32 + lifeProgress * 1.6 + Math.sin(seed + t * 0.4) * 0.08) * (viewportProfile.mobile ? 0.72 : 1);
+
+    lifetimes[i] -= dt * 0.28;
+    if (lifetimes[i] <= 0 || pos[i * 3 + 1] > emitterY + 3.35 || Math.abs(pos[i * 3]) > emitterWidth * 1.1) {
       resetParticle(i);
     }
   }
   particlesGeo.attributes.position.needsUpdate = true;
+  particlesGeo.attributes.alpha.needsUpdate = true;
+  particlesGeo.attributes.size.needsUpdate = true;
 
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
 
 window.addEventListener('resize', () => {
+  viewportProfile = getViewportProfile();
+  updateResponsiveScene();
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, viewportProfile.dpr));
   renderer.setSize(window.innerWidth, window.innerHeight);
   applyScroll();
 });
 
+updateResponsiveScene();
 applyScroll();
 animate();
 
